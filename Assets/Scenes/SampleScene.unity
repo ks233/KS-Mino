@@ -299,7 +299,7 @@ TilemapRenderer:
   m_ChunkCullingBounds: {x: 0, y: 0, z: 0}
   m_MaxChunkCount: 16
   m_MaxFrameAge: 16
-  m_SortOrder: 0
+  m_SortOrder: 1
   m_Mode: 0
   m_DetectChunkCullingBounds: 0
   m_MaskInteraction: 0
@@ -323,7 +323,7 @@ Tilemap:
   m_Origin: {x: 0, y: 0, z: 0}
   m_Size: {x: 0, y: 0, z: 1}
   m_TileAnchor: {x: 0.5, y: 0.5, z: 0}
-  m_TileOrientation: 0
+  m_TileOrientation: 6
   m_TileOrientationMatrix:
     e00: 1
     e01: 0
@@ -441,13 +441,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 519420028}
-  m_LocalRotation: {x: 0, y: -0.06540306, z: 0, w: 0.99785894}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 10, z: -20}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: -7.5, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &519420033
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -455,12 +455,11 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 519420028}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0a48f1f3caf0bcc448f5b044bfe16afc, type: 3}
+  m_Script: {fileID: 11500000, guid: ba6a8f232884cd44b9f6b207b7f0f724, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bag: 01000000020000000300000004000000050000000600000007000000
 --- !u!1 &809845502
 GameObject:
   m_ObjectHideFlags: 0
@@ -651,6 +650,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gameScript: {fileID: 519420030}
   fieldColour: {fileID: 232670567770861157, guid: 2c061995e4dc46346b4dad6181583bbe, type: 3}
+  grid: {fileID: 1735957190}
   minoTile:
   - {fileID: 11400000, guid: 3863e367d1317ff4fa6865fc5b1bdc4e, type: 2}
   - {fileID: 11400000, guid: 34b83969c4e8d9740ae9cf54df9823e6, type: 2}
@@ -661,6 +661,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: cef494821c9fcba429e68b59a67bf2fe, type: 2}
   black: {fileID: 11400000, guid: 8518ad9200efd524da1a91fc28b94055, type: 2}
   fieldTileMap: {fileID: 310495159}
+  c: {fileID: 519420031}
 --- !u!4 &1674125811
 Transform:
   m_ObjectHideFlags: 0
