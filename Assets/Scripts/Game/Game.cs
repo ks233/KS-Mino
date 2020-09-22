@@ -8,7 +8,7 @@ using System.Linq;
 public class Game : MonoBehaviour
 {
 
-    public Text t;
+    //public Text t;
     public float LOCK_DELAY = 1f;
     public float GRAVITY = 0.5f;
     public float SARR = 0.1f;
@@ -16,8 +16,10 @@ public class Game : MonoBehaviour
     public float ARR = 0.016f;
     public Vector2Int[,] OFFSET_3x3;
     public Vector2Int[,] OFFSET_I;
+    private bool left, right, cw, ccw, down, harddrop, ho, restart;
+    private bool turnback = false;
 
-    struct Mino
+    public struct Mino
     {
         public int[,] array;
         public int size;
@@ -26,13 +28,15 @@ public class Game : MonoBehaviour
         public int id;
     };
 
+    public FieldVisualization f;
+
     public int[] bag = new int[] { 1, 2, 3, 4, 5, 6, 7 };//7bag机制
 
     public Queue<int> nextQueue = new Queue<int>();
 
     public int[,] field = new int[10, 40];//10*20的盘面，预留20行，避免c4w玩家被顶到溢出（
 
-    private Mino minoNow;
+    private Mino currentMino;
 
     private Vector2Int minoCoordinate = new Vector2Int(0, 0);//旋转中心的位置
 
@@ -47,7 +51,7 @@ public class Game : MonoBehaviour
     private float lockTimer;
     private float dasTimer;
     private float arrTimer;
-    private float lastInput;
+    private int lastInput;
     private bool arrTrigger = false;
 
     private int count = 0;
@@ -80,6 +84,9 @@ public class Game : MonoBehaviour
         updateNext();
         updateNext();
         generateMino(nextQueue.Dequeue());
+
+        f.UpdateNextTilemap();
+        f.UpdateHoldTilemap();
     }
 
     // Start is called before the first frame update
@@ -207,6 +214,7 @@ public class Game : MonoBehaviour
         Shuffle(bag);
         for (int i = 0; i < 7; i++)
             nextQueue.Enqueue(bag[i]);
+
     }
 
 
@@ -221,7 +229,7 @@ public class Game : MonoBehaviour
         }
     }
 
-    bool isValid(int minoId, int rotationId, Vector2Int coordinate, int size)
+    bool IsValid(int minoId, int rotationId, Vector2Int coordinate, int size)
     {
         int[,] testMino;
         testMino = new int[size, size];
@@ -294,19 +302,19 @@ public class Game : MonoBehaviour
     {
         switch (mino)
         {
-            case 1: minoNow = S; break;
-            case 2: minoNow = Z; break;
-            case 3: minoNow = L; break;
-            case 4: minoNow = J; break;
-            case 5: minoNow = T; break;
-            case 6: minoNow = O; break;
-            case 7: minoNow = I; break;
+            case 1: currentMino = S; break;
+            case 2: currentMino = Z; break;
+            case 3: currentMino = L; break;
+            case 4: currentMino = J; break;
+            case 5: currentMino = T; break;
+            case 6: currentMino = O; break;
+            case 7: currentMino = I; break;
         }
         if (nextQueue.Count <= 7) updateNext();
 
         minoCoordinate = new Vector2Int(4, 19);
         count++;
-        if (!isValid(minoNow.id, 0, minoCoordinate, minoNow.size)) gameover = true;
+        if (!IsValid(currentMino.id, 0, minoCoordinate, currentMino.size)) gameover = true;
 
     }
 
@@ -331,10 +339,10 @@ public class Game : MonoBehaviour
         {
             for (int i = 0; i < 5; i++)
             {
-                Debug.Log("A:" + A + "  B:" + B);
-                Debug.Log(coordinate + OFFSET_3x3[i, A] - OFFSET_3x3[i, B] + " " + i);
+                //Debug.Log("A:" + A + "  B:" + B);
+                //Debug.Log(coordinate + OFFSET_3x3[i, A] - OFFSET_3x3[i, B] + " " + i);
 
-                if (isValid(minoId, B, coordinate + OFFSET_3x3[i, A] - OFFSET_3x3[i, B], size))
+                if (IsValid(minoId, B, coordinate + OFFSET_3x3[i, A] - OFFSET_3x3[i, B], size))
                     return OFFSET_3x3[i, A] - OFFSET_3x3[i, B];
             }
         }
@@ -343,7 +351,7 @@ public class Game : MonoBehaviour
             for (int i = 0; i < 5; i++)
             {
 
-                if (isValid(minoId, B, coordinate + OFFSET_I[i, A] - OFFSET_I[i, B], size))
+                if (IsValid(minoId, B, coordinate + OFFSET_I[i, A] - OFFSET_I[i, B], size))
                     return OFFSET_I[i, A] - OFFSET_I[i, B];
             }
         }
@@ -352,27 +360,27 @@ public class Game : MonoBehaviour
 
     void CCWRotate()//逆时针旋转
     {
-        int size = minoNow.size;
-        int newRotationId = (minoNow.rotation + 3) % 4;
+        int size = currentMino.size;
+        int newRotationId = (currentMino.rotation + 3) % 4;
 
         if (size == 2) lockTimer = 0;
         if (size == 3)
         {
-            if (isValid(minoNow.id, newRotationId, minoCoordinate, minoNow.size))
+            if (IsValid(currentMino.id, newRotationId, minoCoordinate, currentMino.size))
             {
 
-                minoNow.rotation = newRotationId;
-                minoNow.array = RotateMatrix(minoNow.array, size);
+                currentMino.rotation = newRotationId;
+                currentMino.array = RotateMatrix(currentMino.array, size);
                 lockTimer = 0;
                 isSpin = false;
             }
             else
             {
-                Vector2Int o = WallKickOffset(minoNow.id, minoNow.rotation, newRotationId, minoCoordinate, minoNow.size);
+                Vector2Int o = WallKickOffset(currentMino.id, currentMino.rotation, newRotationId, minoCoordinate, currentMino.size);
                 if (o != new Vector2Int(0, 0))
                 {
-                    minoNow.rotation = newRotationId;
-                    minoNow.array = RotateMatrix(minoNow.array, size);
+                    currentMino.rotation = newRotationId;
+                    currentMino.array = RotateMatrix(currentMino.array, size);
                     minoCoordinate += o;
                     lockTimer = 0;
                     isSpin = true;
@@ -382,11 +390,11 @@ public class Game : MonoBehaviour
         else if (size == 5)
         {
 
-            Vector2Int o = WallKickOffset(minoNow.id, minoNow.rotation, newRotationId, minoCoordinate, minoNow.size);
+            Vector2Int o = WallKickOffset(currentMino.id, currentMino.rotation, newRotationId, minoCoordinate, currentMino.size);
             if (o != new Vector2Int(0, 0))
             {
-                minoNow.rotation = newRotationId;
-                minoNow.array = RotateMatrix(minoNow.array, size);
+                currentMino.rotation = newRotationId;
+                currentMino.array = RotateMatrix(currentMino.array, size);
                 minoCoordinate += o;
                 lockTimer = 0;
             }
@@ -398,28 +406,28 @@ public class Game : MonoBehaviour
 
     void CWRotate()//逆时针旋转
     {
-        int size = minoNow.size;
-        int newRotationId = (minoNow.rotation + 1) % 4;
+        int size = currentMino.size;
+        int newRotationId = (currentMino.rotation + 1) % 4;
         if(size == 2) lockTimer = 0;
         if (size == 3)
         {
-            if (isValid(minoNow.id, newRotationId, minoCoordinate, minoNow.size))
+            if (IsValid(currentMino.id, newRotationId, minoCoordinate, currentMino.size))
             {
-                minoNow.rotation = newRotationId;
-                minoNow.array = RotateMatrix(minoNow.array, size);
-                minoNow.array = RotateMatrix(minoNow.array, size);
-                minoNow.array = RotateMatrix(minoNow.array, size);
+                currentMino.rotation = newRotationId;
+                currentMino.array = RotateMatrix(currentMino.array, size);
+                currentMino.array = RotateMatrix(currentMino.array, size);
+                currentMino.array = RotateMatrix(currentMino.array, size);
                 lockTimer = 0;
             }
             else
             {
-                Vector2Int o = WallKickOffset(minoNow.id, minoNow.rotation, newRotationId, minoCoordinate, minoNow.size);
+                Vector2Int o = WallKickOffset(currentMino.id, currentMino.rotation, newRotationId, minoCoordinate, currentMino.size);
                 if (o != new Vector2Int(0, 0))
                 {
-                    minoNow.rotation = newRotationId;
-                    minoNow.array = RotateMatrix(minoNow.array, size);
-                    minoNow.array = RotateMatrix(minoNow.array, size);
-                    minoNow.array = RotateMatrix(minoNow.array, size);
+                    currentMino.rotation = newRotationId;
+                    currentMino.array = RotateMatrix(currentMino.array, size);
+                    currentMino.array = RotateMatrix(currentMino.array, size);
+                    currentMino.array = RotateMatrix(currentMino.array, size);
                     minoCoordinate += o;
                     lockTimer = 0;
                 }
@@ -428,13 +436,13 @@ public class Game : MonoBehaviour
         else if (size == 5)
         {
 
-            Vector2Int o = WallKickOffset(minoNow.id, minoNow.rotation, newRotationId, minoCoordinate, minoNow.size);
+            Vector2Int o = WallKickOffset(currentMino.id, currentMino.rotation, newRotationId, minoCoordinate, currentMino.size);
             if (o != new Vector2Int(0, 0))
             {
-                minoNow.rotation = newRotationId;
-                minoNow.array = RotateMatrix(minoNow.array, size);
-                minoNow.array = RotateMatrix(minoNow.array, size);
-                minoNow.array = RotateMatrix(minoNow.array, size);
+                currentMino.rotation = newRotationId;
+                currentMino.array = RotateMatrix(currentMino.array, size);
+                currentMino.array = RotateMatrix(currentMino.array, size);
+                currentMino.array = RotateMatrix(currentMino.array, size);
                 minoCoordinate += o;
                 lockTimer = 0;
             }
@@ -449,7 +457,7 @@ public class Game : MonoBehaviour
 
     void Move(int x)
     {
-        if (isValid(minoNow.id, minoNow.rotation, new Vector2Int(minoCoordinate.x + x, minoCoordinate.y), minoNow.size)) minoCoordinate.x += x;
+        if (IsValid(currentMino.id, currentMino.rotation, new Vector2Int(minoCoordinate.x + x, minoCoordinate.y), currentMino.size)) minoCoordinate.x += x;
         lockTimer = 0;
     }
 
@@ -480,7 +488,7 @@ public class Game : MonoBehaviour
 
         }
         shadowDistance = 0;//阴影距离
-        int size = minoNow.size;
+        int size = currentMino.size;
         bool shadowTouchGround = false;
         List<Vector2Int> l = GetAllCoordinates();
         while (!shadowTouchGround)//方块下方阴影只要有一块即将重叠，就停止增加阴影距离
@@ -501,11 +509,14 @@ public class Game : MonoBehaviour
             if (!shadowTouchGround)
                 shadowDistance++;
         }
-        foreach (Vector2Int pos in l)//写入方块和阴影
+        foreach (Vector2Int pos in l)//写入阴影
         {
 
-            field[pos.x, pos.y - shadowDistance] = 20 + minoNow.id;
-            field[pos.x, pos.y] = minoNow.id;
+            field[pos.x, pos.y - shadowDistance] = 20 + currentMino.id;
+        }
+        foreach (Vector2Int pos in l)//写入方块
+        {
+            field[pos.x, pos.y] = currentMino.id;
         }
 
     }
@@ -513,12 +524,12 @@ public class Game : MonoBehaviour
     List<Vector2Int> GetAllCoordinates()//mino四个格子的坐标
     {
         List<Vector2Int> l = new List<Vector2Int>();
-        int size = minoNow.size;
+        int size = currentMino.size;
         if (size == 3)
         {
             for (int i = 0; i < size; i++)
                 for (int j = 0; j < size; j++)
-                    if (minoNow.array[j, i] == 1)
+                    if (currentMino.array[j, i] == 1)
                         l.Add(new Vector2Int(i - 1 + minoCoordinate.x, j - 1 + minoCoordinate.y));
 
         }
@@ -526,7 +537,7 @@ public class Game : MonoBehaviour
         {
             for (int i = 0; i < size; i++)
                 for (int j = 0; j < size; j++)
-                    if (minoNow.array[j, i] == 1)
+                    if (currentMino.array[j, i] == 1)
                         l.Add(new Vector2Int(i - 2 + minoCoordinate.x, j - 2 + minoCoordinate.y));
 
         }
@@ -541,7 +552,7 @@ public class Game : MonoBehaviour
         return l;
     }
 
-    void clearLine(int x)
+    void ClearLine(int x)
     {
         for (int i = x; i < 39; i++)
         {
@@ -556,7 +567,7 @@ public class Game : MonoBehaviour
         List<Vector2Int> l = GetAllCoordinates();
         foreach (Vector2Int pos in l)
         {
-            field[pos.x, pos.y] = -minoNow.id;
+            field[pos.x, pos.y] = -currentMino.id;
         }
 
         int fulllines = 0;
@@ -571,21 +582,23 @@ public class Game : MonoBehaviour
 
             if (full)
             {
-                clearLine(i);
+                ClearLine(i);
                 fulllines++;
                 i--;
             }
         }
-        
+        dasTimer = 0;
+        arrTimer = 0;
+        arrTrigger = false;
         isHeld = false;
     }
 
-    string ClearLineMessage(String minoName,bool isSpin,bool isB2B,int clearLineNumber)
+    string ClearLineMessage(String minoName,bool isSpin,bool isB2B,int ClearLineNumber)
     {
         string result = "";
 
         string a = "";
-        switch (clearLineNumber)
+        switch (ClearLineNumber)
         {
             case 1: a = "Single"; break;
             case 2: a = "Double"; break;
@@ -610,6 +623,8 @@ public class Game : MonoBehaviour
         LockBlock();
         lockTimer = 0;
         generateMino(nextQueue.Dequeue());
+
+        f.UpdateNextTilemap();
         //generateMino(6);
     }
 
@@ -617,36 +632,65 @@ public class Game : MonoBehaviour
     {
         if (hold == 0)
         {
-            int t = minoNow.id;
+            int t = currentMino.id;
             generateMino(nextQueue.Dequeue());
+
+            f.UpdateNextTilemap();
             hold = t;
         }
         else
         {
-            int t = minoNow.id;
+            int t = currentMino.id;
             generateMino(hold);
             hold = t;
         }
         isHeld = true;
+        f.UpdateHoldTilemap();
     }
 
-    // Update is called once per frame
     void Update()
     {
 
+         harddrop = Input.GetKeyDown("space");//硬降
+         cw = Input.GetKeyDown("right");
+         ccw = Input.GetKeyDown("left");
+         ho = Input.GetKeyDown("w");//hold
+         restart = Input.GetKeyDown("f4");
 
-        bool left = Input.GetKey("a");//左右
-        bool right = Input.GetKey("d");
-        bool down = Input.GetKey("s");//软降
-        bool harddrop = Input.GetKeyDown("space");//硬降
-        bool cw = Input.GetKeyDown("right");
-        bool ccw = Input.GetKeyDown("left");
-        bool ho = Input.GetKeyDown("w");//hold
-        bool restart = Input.GetKeyDown("f4");
+         RefreshField();
+    }
+    // Update is called once per frame
+    void FixedUpdate()
+    {
+
+        left = Input.GetKey("a");//左右
+        right = Input.GetKey("d");
+        down = Input.GetKey("s");//软降
+
         int input = 0;
-        if (left) input = -1;
-        if (right) input = 1;
-        if (!left && !right) input = 0;//左-1右1
+        if (left && right)
+        {
+            if (!turnback)
+            {
+
+                arrTrigger = false;
+                arrTimer = 0;
+                dasTimer = 0;
+                input = -lastInput;
+                turnback = true;
+            }
+            else
+            {
+                input = lastInput;
+            }
+        }
+        else
+        {
+
+            if (left) input = -1;
+            if (right) input = 1;
+            turnback = false;
+        }
         if (ho && !isHeld)
         {
             Hold();
@@ -656,42 +700,55 @@ public class Game : MonoBehaviour
         {
             RestartGame();
         }
-
-
-        float inputVertical = Input.GetAxis("Vertical");
-
         TimeSpan time = DateTime.Now.TimeOfDay;//秒数精确到浮点数
         float timeNow = (float)time.TotalSeconds;//现在的时间
 
 
         if (!gameover)
         {
-            if (ccw) CCWRotate();//逆时针旋转
+            if (ccw){
+                CCWRotate();//逆时针旋转
+                ccw = false;    
+            }
             if (cw)
             {
                 CWRotate();
                 //顺时针旋转
+                cw = false;
             }
 
-            if (harddrop) hardDrop();//硬降
-
-            //左右移动
-            if (input == 0 || lastInput == 0)
+            if (harddrop)
             {
-                arrTrigger = false;
-                arrTimer = 0;
-                dasTimer = 0;
+                hardDrop();//硬降
+                harddrop = false;
             }
-            else
+
+            if (input != 0)
             {
-                if ((input == -lastInput))
+                //左右移动
+                if (lastInput == 0 || input == -lastInput)//反向移动或刚开始移动则重置das
                 {
                     arrTrigger = false;
                     arrTimer = 0;
                     dasTimer = 0;
                 }
 
-                if (arrTrigger)
+                if (!arrTrigger)//如果不是arr阶段
+                {
+
+                    if (dasTimer == 0)//按下按键后移动的第一下
+                    {
+                        Move(input);
+                        dasTimer = timeNow;
+                    }
+                    else if (timeNow - dasTimer >= DAS)//经过das延迟后移动第二下
+                    {
+                        dasTimer = 0;
+                        arrTrigger = true;
+                        Move(input);
+                    }
+                }
+                else
                 {
                     if (arrTimer == 0)
                         arrTimer = timeNow;
@@ -701,29 +758,19 @@ public class Game : MonoBehaviour
                         arrTimer = timeNow;
                     }
                 }
-                else
-                {
 
-                    if (dasTimer == 0)
-                    {
-                        Move(input);
-                        dasTimer = timeNow;
-                    }
-                    else if (timeNow - dasTimer >= DAS)
-                    {
-                        dasTimer = 0;
-                        arrTrigger = true;
-                        Move(input);
-                    }
-                }
+            }
+            else//如果本次也不移动则重置das
+            {
+                arrTrigger = false;
+                arrTimer = 0;
+                dasTimer = 0;
             }
             lastInput = input;
-
-
             //自然下落or软降
             if (timeNow - fallTimer >= (down ? SARR : GRAVITY))
             {//每0.5s降落一次
-                if (isValid(minoNow.id, minoNow.rotation, new Vector2Int(minoCoordinate.x, minoCoordinate.y - 1), minoNow.size))
+                if (IsValid(currentMino.id, currentMino.rotation, new Vector2Int(minoCoordinate.x, minoCoordinate.y - 1), currentMino.size))
                 {
                     Fall();
                     lockTimer = 0;
@@ -737,6 +784,8 @@ public class Game : MonoBehaviour
                         LockBlock();
                         lockTimer = 0;
                         generateMino(nextQueue.Dequeue());
+
+                        f.UpdateNextTilemap();
                         //generateMino(6);
                     }
                 }
@@ -745,7 +794,7 @@ public class Game : MonoBehaviour
             }
         }
 
-        RefreshField();
+        /*
         t.text = "";
 
         int[] nextArr = nextQueue.ToArray();
@@ -790,7 +839,7 @@ public class Game : MonoBehaviour
             }
             t.text += str + "\r\n";
             str = "";
-        }
+        }*/
 
 
 
