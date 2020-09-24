@@ -406,15 +406,15 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1825509009}
-        m_TargetAssemblyTypeName: menuStart, Assembly-CSharp
-        m_MethodName: ChangeMenuScene
+        m_TargetAssemblyTypeName: SceneManager, Assembly-CSharp
+        m_MethodName: SwitchScene
         m_Mode: 5
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: SampleScene
+          m_StringArgument: Fumen Edit
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &426950505
@@ -777,15 +777,15 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1825509009}
-        m_TargetAssemblyTypeName: menuStart, Assembly-CSharp
-        m_MethodName: ChangeMenuScene
+        m_TargetAssemblyTypeName: SceneManager, Assembly-CSharp
+        m_MethodName: SwitchScene
         m_Mode: 5
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: SampleScene
+          m_StringArgument: Sprint Practice
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &1084441110

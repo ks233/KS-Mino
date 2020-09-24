@@ -2,9 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class menuStart : MonoBehaviour
+public class SceneManager : MonoBehaviour
 {
-    public void ChangeMenuScene(string sceneName)
+    public void SwitchScene(string sceneName)
     {
         Application.LoadLevel(sceneName);
     }
