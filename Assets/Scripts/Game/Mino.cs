@@ -1,7 +1,9 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[Serializable]
 public class Mino
 {
 
@@ -17,7 +19,72 @@ public class Mino
     {
 
     }
+    public void SetArray()
+    {
+        Mino S = new Mino();
+        Mino Z = new Mino();
+        Mino L = new Mino();
+        Mino J = new Mino();
+        Mino T = new Mino();
+        Mino O = new Mino();
+        Mino I = new Mino();
+        S.array = new int[,] { { 0, 0, 0 }, { 1, 1, 0 }, { 0, 1, 1 } };
+        S.size = 3;
+        S.name = "S";
+        S.rotation = 0;
+        S.id = 1;
 
+        Z.array = new int[,] { { 0, 0, 0 }, { 0, 1, 1 }, { 1, 1, 0 } };
+        Z.size = 3;
+        Z.name = "Z";
+        Z.rotation = 0;
+        Z.id = 2;
+
+        L.array = new int[,] { { 0, 0, 0 }, { 1, 1, 1 }, { 0, 0, 1 } };
+        L.size = 3;
+        L.name = "L";
+        L.rotation = 0;
+        L.id = 3;
+
+        J.array = new int[,] { { 0, 0, 0 }, { 1, 1, 1 }, { 1, 0, 0 } };
+        J.size = 3;
+        J.name = "J";
+        J.rotation = 0;
+        J.id = 4;
+
+        T.array = new int[,] { { 0, 0, 0 }, { 1, 1, 1 }, { 0, 1, 0 } };
+        T.size = 3;
+        T.name = "T";
+        T.rotation = 0;
+        T.id = 5;
+
+        O.array = new int[,] { { 1, 1 }, { 1, 1 } };
+        O.size = 2;
+        O.name = "O";
+        O.rotation = 0;
+        O.id = 6;
+
+        I.array = new int[,] { { 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0 }, { 0, 1, 1, 1, 1 }, { 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0 } };
+        I.size = 5;
+        I.name = "I";
+        I.rotation = 0;
+        I.id = 7;
+        Mino m;
+        switch (id)
+        {
+            case 1: array = S.array.Clone() as int[,]; break;
+            case 2: array = Z.array.Clone() as int[,]; break;
+            case 3: array = L.array.Clone() as int[,]; break;
+            case 4: array = J.array.Clone() as int[,]; break;
+            case 5: array = T.array.Clone() as int[,]; break;
+            case 6: array = O.array.Clone() as int[,]; break;
+            case 7: array = I.array.Clone() as int[,]; break;
+        }
+        for (int i = 0; i < (4 - rotation) % 4; i++)
+        {
+            array = Game.RotateMatrix(array, size);
+        }
+    }
     public Mino(int minoId)
     {
 

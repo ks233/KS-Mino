@@ -22,26 +22,13 @@ public class Game : MonoBehaviour
     private bool turnback = false;
 
 
-    //谱面模式
-    public string GAMEMODE = "";
-    /*
-     * RECORD - 录制模式
-     * FUMEN - 谱面编辑模式
-     * PLAY - 试玩模式
-     */
-
-
-
-
-
-
 
     public InputField nextSeq;
     public Text clearMsg;
 
     public FieldVisualization f;
 
-
+    [HideInInspector]
     public NextManager next;
 
     //public int[,] field = new int[10, 40];//10*20的盘面，预留20行，避免c4w玩家被顶到溢出（
@@ -67,11 +54,16 @@ public class Game : MonoBehaviour
     private bool arrTrigger = false;
 
     private int count = 0;
+
+    [HideInInspector]
     public bool gameover = false;
 
+    [HideInInspector]
     public int hold = 0;
+    [HideInInspector]
     public bool isHeld;
-    public Toggle useRandomNext;
+
+    public Toggle useCustomNext;
 
 
     void RestartGame()
@@ -87,13 +79,13 @@ public class Game : MonoBehaviour
         combo = 0;
 
         next = new NextManager();
-        next.setUseRandomNext(useRandomNext.isOn);
+        next.setUseCustomNext(useCustomNext.isOn);
         next.SetNextSeq(nextSeq.text);
         next.ResetNext();
         GenerateMino(next.Dequeue());
 
-        f.UpdateNextTilemap();
-        f.UpdateHoldTilemap();
+        f.UpdateNextTilemap(next);
+        f.UpdateHoldTilemap(hold);
     }
 
     // Start is called before the first frame update
@@ -367,27 +359,22 @@ public class Game : MonoBehaviour
         ct = new ClearType();
         ct.wasB2b = wasB2B;
         //此时方块的位置和旋转都已经固定，开始消行性质检定
-        bool c = false, f = false, k = false;
-        if (currentMino.name == "T")//tspin
-        {
-            c = field.hasThreeCorners(currentMino);
-            f = field.hasTwoFeets(currentMino);
-            k = field.kicked;
-        }
-        else
-        {
-            ct.tSpin = false;
-        }
-        int lines = field.Clear(currentMino);
+        int lines = field.LinesCanClear(currentMino);
         ct.lines = lines;
         ct.pc = field.IsAllClear();
         if (lines > 0)
         {
+
             if (currentMino.name == "T")//tspin
             {
+                bool c, f, k;
+                c = field.HasThreeCorners(currentMino);
+                f = field.HasTwoFeets(currentMino);
+                k = field.kicked;
                 if (lines == 1)
                 {
-                    bool cannotGoUp = field.IsValid(currentMino, new Vector2Int(currentMino.position.x, currentMino.position.y + 1));
+                    bool cannotGoUp = !field.IsValid(currentMino, new Vector2Int(currentMino.position.x, currentMino.position.y + 1));
+                    Debug.Log(cannotGoUp);
                     if (c && f && cannotGoUp)//t-spin single
                     {
                         ct.tSpin = true;
@@ -411,7 +398,12 @@ public class Game : MonoBehaviour
                     ct.tSpinType = 3;
                 }
             }
+            else
+            {
+                ct.tSpin = false;
+            }
             wasB2B = ct.GetIsB2b();
+            field.Clear(currentMino);
             clearMsg.text = ct.ClearMessage();
 
             TimeSpan time = DateTime.Now.TimeOfDay;//秒数精确到浮点数
@@ -440,7 +432,7 @@ public class Game : MonoBehaviour
         lockTimer = 0;
         GenerateMino(next.Dequeue());
 
-        f.UpdateNextTilemap();
+        f.UpdateNextTilemap(next);
         //GenerateMino(6);
     }
 
@@ -451,7 +443,7 @@ public class Game : MonoBehaviour
             int t = currentMino.id;
             GenerateMino(next.Dequeue());
 
-            f.UpdateNextTilemap();
+            f.UpdateNextTilemap(next);
             hold = t;
         }
         else
@@ -461,7 +453,7 @@ public class Game : MonoBehaviour
             hold = t;
         }
         isHeld = true;
-        f.UpdateHoldTilemap();
+        f.UpdateHoldTilemap(hold);
     }
 
     void Update()
@@ -476,6 +468,7 @@ public class Game : MonoBehaviour
 
 
         field.RefreshField(currentMino);
+        f.SetField(field);
     }
     // Update is called once per frame
     void FixedUpdate()
@@ -604,7 +597,7 @@ public class Game : MonoBehaviour
                         lockTimer = 0;
                         GenerateMino(next.Dequeue());
 
-                        f.UpdateNextTilemap();
+                        f.UpdateNextTilemap(next);
                         //GenerateMino(6);
                     }
                 }
@@ -613,7 +606,7 @@ public class Game : MonoBehaviour
             }
 
 
-            if (timeNow - clearMsgTimer >= 1 && clearMsgTimer!=0)
+            if (timeNow - clearMsgTimer >= 2 && clearMsgTimer!=0)
             {
                 clearMsg.text = "";
                 clearMsgTimer = 0;
@@ -665,9 +658,5 @@ public class Game : MonoBehaviour
             t.text += str + "\r\n";
             str = "";
         }*/
-
-
-
-
     }
 }

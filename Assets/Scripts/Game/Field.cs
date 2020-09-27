@@ -1,7 +1,9 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[Serializable]
 public class Field
 {
     public int[,] array = new int[10, 40];//10*20的盘面，预留20行，避免c4w玩家被顶到溢出（
@@ -39,17 +41,9 @@ public class Field
 
     public bool IsValid(Mino mino, Vector2Int coordinate)
     {
-        int size = mino.size;
         int minoId = mino.id;
-        int rotationId = mino.rotation;
-
-        int[,] testMino;
-        testMino = new int[size, size];
-        testMino = new Mino(minoId).array;
-        for (int i = 0; i < (4 - rotationId) % 4; i++)
-        {
-            testMino = Game.RotateMatrix(testMino, size);
-        }
+        int x = coordinate.x;
+        int y = coordinate.y;
         if (1 <= minoId && minoId <= 5)
         {
 
@@ -59,7 +53,7 @@ public class Field
             {
                 for (int j = 0; j < 3; j++)
                 {
-                    if (testMino[j, i] == 1)
+                    if (mino.array[j, i] == 1)
                     {
                         if (coordinate.x + i - 1 > 9 || coordinate.x + i - 1 < 0) return false;
                         if (coordinate.y + j - 1 < 0) return false;
@@ -82,14 +76,11 @@ public class Field
         }
         if (minoId == 7)
         {
-            int x, y;
-            x = coordinate.x;
-            y = coordinate.y;
             for (int i = -2; i < 3; i++)
             {
                 for (int j = -2; j < 3; j++)
                 {
-                    if (testMino[j + 2, i + 2] == 1)
+                    if (mino.array[j + 2, i + 2] == 1)
                     {
                         if (x + i > 9 || x + i < 0) return false;
                         if (y + j < 0) return false;
@@ -163,7 +154,7 @@ public class Field
         return true;
     }
 
-    public bool hasThreeCorners(Mino tMino)//判定tspin的条件之一
+    public bool HasThreeCorners(Mino tMino)//判定tspin的条件之一
     {
         int x = tMino.position.x;
         int y = tMino.position.y;
@@ -183,11 +174,10 @@ public class Field
     }
 
 
-    public bool hasTwoFeets(Mino tMino)//判定tspin的条件其二，如果是，则为t1，不是则为mini
+    public bool HasTwoFeets(Mino tMino)//判定tspin的条件其二，如果是，则为t1，不是则为mini
     {
         int x = tMino.position.x;
         int y = tMino.position.y;
-        int corner = 0;
         int[] corners = { 0, 0, 0, 0 };
         int cornerId = 0;
         Vector2Int feetId = new Vector2Int();
@@ -215,7 +205,7 @@ public class Field
     }
 
 
-    private List<Vector2Int> GetAllCoordinates(Mino currentMino)//mino四个格子的坐标
+    public List<Vector2Int> GetAllCoordinates(Mino currentMino)//mino四个格子的坐标
     {
         List<Vector2Int> l = new List<Vector2Int>();
         int size = currentMino.size;
@@ -293,6 +283,22 @@ public class Field
 
     }
 
+    public void RefreshField()
+    {//刷新field中的元素
+
+        for (int i = 0; i < 10; i++)//先清除地形以外的元素
+        {
+            for (int j = 0; j < 40; j++)
+            {
+                if (array[i, j] > 0)
+                {
+                    array[i, j] = 0;
+                }
+            }
+
+        }
+    }
+
     public bool IsAllClear()
     {
         for (int i = 0; i < 10; i++)
@@ -310,7 +316,37 @@ public class Field
         return true;
     }
 
-    public int Clear(Mino mino)//消行并返回消除的行数
+    public int LinesCanClear(Mino mino)//消行并返回消除的行数
+    {
+        int lines = 0;
+        List<Vector2Int> l = GetAllCoordinates(mino);
+        List<int> ys = new List<int>();//方块占据的所有y坐标，比如竖着的长条占了4行
+        foreach (Vector2Int v in l)
+        {
+            if (!ys.Contains(v.y))
+            {
+                ys.Add(v.y);
+            }
+        }
+        ys.Sort();
+        foreach (int y in ys)
+        {
+
+            bool canClear = true;
+            for (int j = 0; j < 10; j++)
+            {
+                if (array[j, y] >= 0) canClear = false;
+            }
+            if (canClear)
+            {
+                lines++;
+            }
+        }
+
+        return lines;
+    }
+
+    public void Clear(Mino mino)
     {
         int lines = 0;
         List<Vector2Int> l = GetAllCoordinates(mino);
@@ -337,8 +373,6 @@ public class Field
                 lines++;
             }
         }
-
-        return lines;
     }
     public void LockMino(Mino currentMino)
     {

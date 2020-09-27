@@ -5,9 +5,6 @@ using UnityEngine.Tilemaps;
 
 public class FieldVisualization : MonoBehaviour
 {
-    public Game gameScript;
-    public NextManager nextManager;
-    public GameObject fieldColour;
     public Grid grid;
     public Tile[] minoTile;
     public Tile black;
@@ -16,60 +13,71 @@ public class FieldVisualization : MonoBehaviour
     public Tilemap holdTileMap;
     public Camera c;
     public int MAX_NEXT = 5;
+
+    [HideInInspector]
+    public Field f;
+
     // Start is called before the first frame update
     void Start()
     {
+        f = new Field();
         Debug.Log(fieldTileMap.WorldToLocal(new Vector3Int(0, 0, 0)));
     }
 
+    public void SetField(Field field)
+    {
+        f = field;
+    }
     // Update is called once per frame
     void Update()
     {
         //if (!gameScript.gameover)
-        {
-            int[,] field = gameScript.field.array;
-            fieldTileMap.ClearAllTiles();
-            for (int j = 0; j < 10; j++)
-            {
-                for (int i = 0; i < 20; i++)
-                {
-                    Vector3Int pos = new Vector3Int(j, i, 0);
-                    if (field[j, i] == 0)
-                    {
-                        //fieldTileMap.SetTile(pos, black);
-                    }
-                    if (field[j, i] > 0 && field[j, i] < 20)
-                    {
-                        fieldTileMap.SetTile(pos, minoTile[field[j, i] - 1]);
-                    }
-                    if (field[j, i] < 0)
-                    {
-                        fieldTileMap.SetTile(pos, minoTile[-field[j, i] - 1]);
-                    }
-                    if (field[j, i] > 20)
-                    {
 
-                        fieldTileMap.SetTile(pos, minoTile[field[j, i] - 21]);
-                        fieldTileMap.SetTileFlags(pos, TileFlags.None);
 
-                        Color tmp = fieldTileMap.GetColor(pos);
-                        tmp.a = 0.4f;
-                        fieldTileMap.SetColor(pos, tmp);
-                    }
-
-                }
-            }
-        }
-
+        UpdateField();
 
     }
+    void UpdateField()
+    {
+        int[,] field = f.array;
+        fieldTileMap.ClearAllTiles();
+        for (int j = 0; j < 10; j++)
+        {
+            for (int i = 0; i < 20; i++)
+            {
+                Vector3Int pos = new Vector3Int(j, i, 0);
+                if (field[j, i] == 0)
+                {
+                    //fieldTileMap.SetTile(pos, black);
+                }
+                if (field[j, i] > 0 && field[j, i] < 20)
+                {
+                    fieldTileMap.SetTile(pos, minoTile[field[j, i] - 1]);
+                }
+                if (field[j, i] < 0)
+                {
+                    fieldTileMap.SetTile(pos, minoTile[-field[j, i] - 1]);
+                }
+                if (field[j, i] > 20)
+                {
 
-    public void UpdateNextTilemap()
+                    fieldTileMap.SetTile(pos, minoTile[field[j, i] - 21]);
+                    fieldTileMap.SetTileFlags(pos, TileFlags.None);
+
+                    Color tmp = fieldTileMap.GetColor(pos);
+                    tmp.a = 0.4f;
+                    fieldTileMap.SetColor(pos, tmp);
+                }
+
+            }
+        }
+    }
+    public void UpdateNextTilemap(NextManager n)
     {
 
         nextTileMap.ClearAllTiles();
         Vector3Int nextPos = new Vector3Int(0, 0, 0);
-        Queue<int> next = gameScript.next.nextQueue;
+        Queue<int> next = n.nextQueue;
         string s = "";
         int count = 0;
         foreach (int id in next)
@@ -100,12 +108,11 @@ public class FieldVisualization : MonoBehaviour
         }
         //Debug.Log(s);
     }
-    public void UpdateHoldTilemap()
+    public void UpdateHoldTilemap(int holdId)
     {
-        
+
         Vector3Int holdPos = new Vector3Int(0, 0, 0);
         Mino mi = new Mino();
-        int holdId = gameScript.hold;
         holdTileMap.ClearAllTiles();
         if (holdId != 0)
         {
@@ -116,12 +123,12 @@ public class FieldVisualization : MonoBehaviour
             {
                 for (int j = 0; j < m.size; j++)
                 {
-                    if (m.array[i, j] == 1) holdTileMap.SetTile(new Vector3Int(j, i, 0)+holdPos, minoTile[m.id - 1]);
+                    if (m.array[i, j] == 1) holdTileMap.SetTile(new Vector3Int(j, i, 0) + holdPos, minoTile[m.id - 1]);
                 }
             }
         }
 
-        
+
     }
- 
+
 }

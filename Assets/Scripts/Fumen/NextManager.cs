@@ -7,7 +7,7 @@ public class NextManager : MonoBehaviour
 {
 
     public Queue<int> nextQueue = new Queue<int>();
-    public bool useRandomNext = true;
+    public bool useCustomNext = true;
     public string nextSeq = "";
     int[] bag = new int[] { 1, 2, 3, 4, 5, 6, 7 };//7bag»úÖÆ
 
@@ -41,15 +41,15 @@ public class NextManager : MonoBehaviour
     {
         nextSeq = seq;
     }
-    public void setUseRandomNext(bool b)
+    public void setUseCustomNext(bool b)
     {
-        useRandomNext = b;
+        useCustomNext = b;
     }
 
     public void ResetNext()
     {
         nextQueue.Clear();
-        if (useRandomNext)
+        if (!useCustomNext)
         {
             bag = new int[] { 1, 2, 3, 4, 5, 6, 7 };
             Shuffle(bag);
@@ -65,7 +65,7 @@ public class NextManager : MonoBehaviour
     public int Dequeue()
     {
 
-        if (nextQueue.Count <= 7 && useRandomNext) updateNext();
+        if (nextQueue.Count <= 7 && !useCustomNext) updateNext();
         if (nextQueue.Count == 0) return 0;
         return nextQueue.Dequeue();
     }
