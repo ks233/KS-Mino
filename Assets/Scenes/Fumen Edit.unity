@@ -375,7 +375,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1980732719}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: FumenEditor, Assembly-CSharp
         m_MethodName: StopRecording
         m_Mode: 1
@@ -1355,6 +1355,7 @@ MonoBehaviour:
   m_CaretBlinkRate: 0.85
   m_CaretWidth: 1
   m_ReadOnly: 0
+  m_ShouldActivateOnSelect: 1
 --- !u!114 &331593101
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3124,7 +3125,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1980732719}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: FumenEditor, Assembly-CSharp
         m_MethodName: StartRecording
         m_Mode: 1
@@ -5046,7 +5047,7 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1980732719}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: FumenEditor, Assembly-CSharp
         m_MethodName: UpdateTips
         m_Mode: 1
@@ -5636,7 +5637,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1980732719}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: FumenEditor, Assembly-CSharp
         m_MethodName: AddMission
         m_Mode: 1
@@ -6299,7 +6300,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1980732719}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: FumenEditor, Assembly-CSharp
         m_MethodName: LoadFumen
         m_Mode: 1
@@ -6566,7 +6567,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1980732719}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: FumenEditor, Assembly-CSharp
         m_MethodName: Export
         m_Mode: 1
@@ -6699,7 +6700,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1980732719}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: FumenEditor, Assembly-CSharp
         m_MethodName: DeleteMission
         m_Mode: 1
@@ -6992,9 +6993,6 @@ GameObject:
   - component: {fileID: 1980732716}
   - component: {fileID: 1980732715}
   - component: {fileID: 1980732713}
-  - component: {fileID: 1980732718}
-  - component: {fileID: 1980732714}
-  - component: {fileID: 1980732719}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -7014,23 +7012,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba6a8f232884cd44b9f6b207b7f0f724, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &1980732714
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1980732712}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4fc25a813acdcf04b89d643fc9230a03, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  colorSelector: {fileID: 1342945534}
-  c: {fileID: 1980732716}
-  grid: {fileID: 1091783642}
-  gameScript: {fileID: 1980732719}
-  df: {fileID: 1980732718}
 --- !u!81 &1980732715
 AudioListener:
   m_ObjectHideFlags: 0
@@ -7096,67 +7077,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1980732718
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1980732712}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 611b2df8121fdcf43a703609f2724a61, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  fieldTileMap: {fileID: 602004616}
-  c: {fileID: 1980732716}
-  grid: {fileID: 1091783642}
-  minoTile:
-  - {fileID: 11400000, guid: 3863e367d1317ff4fa6865fc5b1bdc4e, type: 2}
-  - {fileID: 11400000, guid: 34b83969c4e8d9740ae9cf54df9823e6, type: 2}
-  - {fileID: 11400000, guid: 48c3b938177b9ea48969e54a29b8cd87, type: 2}
-  - {fileID: 11400000, guid: d41bad9ef911d694d978c16b1d7d209e, type: 2}
-  - {fileID: 11400000, guid: e681c5e5be42a8a4d8cc9a38a7b52b16, type: 2}
-  - {fileID: 11400000, guid: e7e621fb44c95bc479b28ec83bd9e80f, type: 2}
-  - {fileID: 11400000, guid: cef494821c9fcba429e68b59a67bf2fe, type: 2}
-  - {fileID: 11400000, guid: 6744c49ddef60bb4f89966314b4fb78f, type: 2}
-  gameScript: {fileID: 1980732719}
-  selecting: 8
---- !u!114 &1980732719
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1980732712}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6e47d975df5b54445a2aefd1f0623d98, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  MODE: EDIT
-  LOCK_DELAY: 1
-  GRAVITY: 20
-  SARR: 0.01
-  DAS: 0.083
-  ARR: 0.016
-  clearMsg: {fileID: 230965669}
-  f: {fileID: 267452677}
-  next: {fileID: 0}
-  field:
-    kicked: 0
-  gameover: 0
-  hold: 0
-  isHeld: 0
-  nextSeq: {fileID: 331593100}
-  guideList: {fileID: 978580664}
-  missionList: {fileID: 421481658}
-  nCombo: {fileID: 1346931011}
-  useCustomNext: {fileID: 395943595}
-  startRec: {fileID: 776413398}
-  stopRec: {fileID: 76223400}
-  clearTypeDropdown: {fileID: 480688556}
-  tips: {fileID: 1371859786}
 --- !u!1 &1995188960
 GameObject:
   m_ObjectHideFlags: 0

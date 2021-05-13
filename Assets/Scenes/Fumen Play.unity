@@ -2829,10 +2829,10 @@ RectTransform:
   m_Father: {fileID: 1849584336}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 795, y: -132.34}
-  m_SizeDelta: {x: 235.7, y: 147.594}
+  m_AnchorMin: {x: 1, y: 1}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: -124, y: -132.34}
+  m_SizeDelta: {x: 235.69995, y: 147.594}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1074632620
 MonoBehaviour:
@@ -3364,9 +3364,9 @@ RectTransform:
   m_Father: {fileID: 1849584336}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 103, y: -247}
+  m_AnchorMin: {x: 0.5, y: 0}
+  m_AnchorMax: {x: 0.5, y: 0}
+  m_AnchoredPosition: {x: 103, y: 37}
   m_SizeDelta: {x: 525.51, y: 43.127}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1187062664
@@ -4605,7 +4605,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1980732719}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: FumenPlayer, Assembly-CSharp
         m_MethodName: RestartGame
         m_Mode: 1
@@ -5424,9 +5424,6 @@ GameObject:
   - component: {fileID: 1980732716}
   - component: {fileID: 1980732715}
   - component: {fileID: 1980732713}
-  - component: {fileID: 1980732714}
-  - component: {fileID: 1980732719}
-  - component: {fileID: 1980732718}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -5444,18 +5441,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ba6a8f232884cd44b9f6b207b7f0f724, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &1980732714
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1980732712}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2c5e379d5e50c6e4cb4a770af0d8616a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!81 &1980732715
@@ -5523,68 +5508,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1980732718
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1980732712}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6326d90f8891ae64cb8f7ce98f5b4e98, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  showGuide: {fileID: 2138059971}
-  guideTilemap: {fileID: 222937166}
-  gameScript: {fileID: 1980732719}
-  minoTile:
-  - {fileID: 11400000, guid: 347fec35b634b7840866150ff98f81d0, type: 2}
-  - {fileID: 11400000, guid: d62cab6fa161b1849bd0e0af756f2027, type: 2}
-  - {fileID: 11400000, guid: 26da88546618f5d40b10654841b7116c, type: 2}
-  - {fileID: 11400000, guid: b9a990cb831e22546bc794725b4b988d, type: 2}
-  - {fileID: 11400000, guid: e62a67aaf7b7e044198bbbf7d9cf065d, type: 2}
-  - {fileID: 11400000, guid: 262dd9fbaee6eea408c2607b656f1645, type: 2}
-  - {fileID: 11400000, guid: 89583312900c4da4595ea40f80c7809c, type: 2}
---- !u!114 &1980732719
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1980732712}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8c3c30a6744baa24e99627a480c42dd4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  LOCK_DELAY: 1
-  GRAVITY: 0.5
-  SARR: 0.01
-  DAS: 0.083
-  ARR: 0.016
-  clearMsg: {fileID: 230965669}
-  f: {fileID: 267452677}
-  next: {fileID: 0}
-  field:
-    kicked: 0
-  count: 0
-  gameover: 0
-  hold: 0
-  isHeld: 0
-  fumen:
-    minoSequence: 
-    useCustomNext: 1
-    isHoldAllowed: 1
-    guideList: []
-    missionList: []
-    tips: 
-    field: 
-  missionList: {fileID: 421481658}
-  useCustomNext: {fileID: 0}
-  tips: {fileID: 1371859786}
-  folder: {fileID: 43872561}
-  filename: {fileID: 1364004709}
 --- !u!1 &1995188960
 GameObject:
   m_ObjectHideFlags: 0
@@ -5750,7 +5673,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1980732719}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: FumenPlayer, Assembly-CSharp
         m_MethodName: LoadFumen
         m_Mode: 1
@@ -5833,9 +5756,9 @@ RectTransform:
   m_Father: {fileID: 1849584336}
   m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 305, y: 36}
+  m_AnchorMin: {x: 1, y: 0.5}
+  m_AnchorMax: {x: 1, y: 0.5}
+  m_AnchoredPosition: {x: -155, y: 36}
   m_SizeDelta: {x: 160, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2138059971

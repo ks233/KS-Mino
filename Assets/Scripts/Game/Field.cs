@@ -8,9 +8,9 @@ public class Field
 {
     public int[,] array = new int[10, 40];//10*20的盘面，预留20行，避免c4w玩家被顶到溢出（
 
-    private int shadowDistance;
+    private int ghostDist;//阴影距离
 
-    public bool kicked = false;//判断tspin的条件之一：是否旋转过
+    public bool kicked = false;//判断tspin的条件之一：是否踢墙过
 
     public Field()
     {
@@ -19,6 +19,7 @@ public class Field
 
     void ClearLine(int x)
     {
+        Debug.Log("clear");
         for (int i = x; i < 39; i++)
         {
             for (int j = 0; j < 10; j++)
@@ -41,15 +42,12 @@ public class Field
 
     public bool IsValid(Mino mino, Vector2Int coordinate)
     {
-        int minoId = mino.id;
+        int minoId = mino.GetIdInt();
         int x = coordinate.x;
         int y = coordinate.y;
-        if (1 <= minoId && minoId <= 5)
+        if (1 <= minoId && minoId <= 5)//3*3的mino
         {
-
-
-
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < 3; i++)//逐个方格检查
             {
                 for (int j = 0; j < 3; j++)
                 {
@@ -94,10 +92,9 @@ public class Field
 
     public bool IsValid(Mino mino, int rotationId, Vector2Int coordinate)
     {
-        int size = mino.size;
-        int minoId = mino.id;
+        int size = mino.GetSize();
+        int minoId = mino.GetIdInt();
         int[,] testMino;
-        testMino = new int[size, size];
         testMino = new Mino(minoId).array;
         for (int i = 0; i < (4 - rotationId) % 4; i++)
         {
@@ -208,7 +205,7 @@ public class Field
     public List<Vector2Int> GetAllCoordinates(Mino currentMino)//mino四个格子的坐标
     {
         List<Vector2Int> l = new List<Vector2Int>();
-        int size = currentMino.size;
+        int size = currentMino.GetSize();
         if (size == 3)
         {
             for (int i = 0; i < size; i++)
@@ -249,51 +246,47 @@ public class Field
             }
 
         }
-        shadowDistance = 0;//阴影距离
-        int size = currentMino.size;
+        ghostDist = 0;//阴影距离
+        int size = currentMino.GetSize();
         bool shadowTouchGround = false;
         List<Vector2Int> l = GetAllCoordinates(currentMino);
         while (!shadowTouchGround)//方块下方阴影只要有一块即将重叠，就停止增加阴影距离
         {
             foreach (Vector2Int pos in l)
             {
-                if (pos.y - shadowDistance <= 0)
+                if (pos.y - ghostDist <= 0)
                 {
                     shadowTouchGround = true;
                     break;
                 }
-                if (array[pos.x, pos.y - shadowDistance - 1] < 0)
+                if (array[pos.x, pos.y - ghostDist - 1] < 0)
                 {
                     shadowTouchGround = true;
                     break;
                 }
             }
             if (!shadowTouchGround)
-                shadowDistance++;
+                ghostDist++;
         }
         foreach (Vector2Int pos in l)//写入阴影
         {
 
-            array[pos.x, pos.y - shadowDistance] = 20 + currentMino.id;
+            array[pos.x, pos.y - ghostDist] = 20 + currentMino.GetIdInt();
         }
         foreach (Vector2Int pos in l)//写入方块
         {
-            array[pos.x, pos.y] = currentMino.id;
+            array[pos.x, pos.y] = currentMino.GetIdInt();
         }
 
     }
 
-    public void RefreshField()
-    {//刷新field中的元素
-
-        for (int i = 0; i < 10; i++)//先清除地形以外的元素
+    public void Clear()
+    {
+        for (int i = 0; i < 10; i++)
         {
             for (int j = 0; j < 40; j++)
             {
-                if (array[i, j] > 0)
-                {
                     array[i, j] = 0;
-                }
             }
 
         }
@@ -308,7 +301,6 @@ public class Field
                 if (array[i, j] > 20|| array[i, j] < 0)
                 {
                     int a = array[i, j];
-                    Debug.LogFormat("{0},{1},{2}",i,j,a);
                     return false;
                 }
             }
@@ -380,7 +372,8 @@ public class Field
         List<Vector2Int> l = GetAllCoordinates(currentMino);
         foreach (Vector2Int pos in l)
         {
-            array[pos.x, pos.y] = -currentMino.id;
+            array[pos.x, pos.y] = -currentMino.GetIdInt();
+            Debug.Log(-currentMino.GetIdInt());
         }
     }
 

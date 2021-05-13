@@ -5,6 +5,7 @@ TagManager:
   serializedVersion: 2
   tags:
   - useRandomNext
+  - MinoTile
   layers:
   - Default
   - TransparentFX

@@ -7,160 +7,136 @@ using UnityEngine;
 public class Mino
 {
 
+    //枚举：方块id
+    public enum MinoID { S, Z, L, J, T, O, I }
+
+    //对象的属性：数组、方块id、旋转id、位置
     public int[,] array;
-    public int size;
-    public string name;
-    public int rotation;
-    public int id;
+    public MinoID id;
+    public int rotation; //0~3表示四个方向
     public Vector2Int position;
 
+    //7种块的数组
+    private static readonly int[,] arrayS = new int[,] { { 0, 0, 0 }, { 1, 1, 0 }, { 0, 1, 1 } };
+    private static readonly int[,] arrayZ = new int[,] { { 0, 0, 0 }, { 0, 1, 1 }, { 1, 1, 0 } };
+    private static readonly int[,] arrayL = new int[,] { { 0, 0, 0 }, { 1, 1, 1 }, { 0, 0, 1 } };
+    private static readonly int[,] arrayJ = new int[,] { { 0, 0, 0 }, { 1, 1, 1 }, { 1, 0, 0 } };
+    private static readonly int[,] arrayT = new int[,] { { 0, 0, 0 }, { 1, 1, 1 }, { 0, 1, 0 } };
+    private static readonly int[,] arrayO = new int[,] { { 1, 1 }, { 1, 1 } };
+    private static readonly int[,] arrayI = new int[,] { { 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0 }, { 0, 1, 1, 1, 1 }, { 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0 } };
 
-    public Mino()
+    public Mino()               //不带参数的构造函数,默认初始化一个S块
     {
+        id = MinoID.S;
+        array = new int[,] { { 0, 0, 0 }, { 1, 1, 0 }, { 0, 1, 1 } };
+        position = new Vector2Int(0, 0);
 
     }
-    public void SetArray()
+    public Mino(MinoID _id)     //构造指定ID的块
     {
-        Mino S = new Mino();
-        Mino Z = new Mino();
-        Mino L = new Mino();
-        Mino J = new Mino();
-        Mino T = new Mino();
-        Mino O = new Mino();
-        Mino I = new Mino();
-        S.array = new int[,] { { 0, 0, 0 }, { 1, 1, 0 }, { 0, 1, 1 } };
-        S.size = 3;
-        S.name = "S";
-        S.rotation = 0;
-        S.id = 1;
+        id = _id;
+        rotation = 0;
+        position = new Vector2Int(0, 0);
+        SetArray(_id, 0);
+    }
 
-        Z.array = new int[,] { { 0, 0, 0 }, { 0, 1, 1 }, { 1, 1, 0 } };
-        Z.size = 3;
-        Z.name = "Z";
-        Z.rotation = 0;
-        Z.id = 2;
+    public Mino(int _id)     //构造指定ID的块
+    {
+        id = IntToMinoID(_id);
+        rotation = 0;
+        position = new Vector2Int(0, 0);
+        SetArray(id, 0);
+    }
 
-        L.array = new int[,] { { 0, 0, 0 }, { 1, 1, 1 }, { 0, 0, 1 } };
-        L.size = 3;
-        L.name = "L";
-        L.rotation = 0;
-        L.id = 3;
 
-        J.array = new int[,] { { 0, 0, 0 }, { 1, 1, 1 }, { 1, 0, 0 } };
-        J.size = 3;
-        J.name = "J";
-        J.rotation = 0;
-        J.id = 4;
+    public int GetRotationId()
+    {
+        return rotation;
+    }
 
-        T.array = new int[,] { { 0, 0, 0 }, { 1, 1, 1 }, { 0, 1, 0 } };
-        T.size = 3;
-        T.name = "T";
-        T.rotation = 0;
-        T.id = 5;
+    public void SetRotationId(int r)
+    {
+        rotation = r;
+    }
 
-        O.array = new int[,] { { 1, 1 }, { 1, 1 } };
-        O.size = 2;
-        O.name = "O";
-        O.rotation = 0;
-        O.id = 6;
+    public void Move(Vector2Int delta) {
+        position += delta;
+    
+    }
 
-        I.array = new int[,] { { 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0 }, { 0, 1, 1, 1, 1 }, { 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0 } };
-        I.size = 5;
-        I.name = "I";
-        I.rotation = 0;
-        I.id = 7;
-        Mino m;
+    public Vector2Int GetPosition() {
+        return position;
+    }
+    public void SetArray(MinoID id, int rotationID)         //初始化ID对应的数组
+    {
+
         switch (id)
         {
-            case 1: array = S.array.Clone() as int[,]; break;
-            case 2: array = Z.array.Clone() as int[,]; break;
-            case 3: array = L.array.Clone() as int[,]; break;
-            case 4: array = J.array.Clone() as int[,]; break;
-            case 5: array = T.array.Clone() as int[,]; break;
-            case 6: array = O.array.Clone() as int[,]; break;
-            case 7: array = I.array.Clone() as int[,]; break;
+            case MinoID.S: array = arrayS.Clone() as int[,]; break;
+            case MinoID.Z: array = arrayZ.Clone() as int[,]; break;
+            case MinoID.L: array = arrayL.Clone() as int[,]; break;
+            case MinoID.J: array = arrayJ.Clone() as int[,]; break;
+            case MinoID.T: array = arrayT.Clone() as int[,]; break;
+            case MinoID.O: array = arrayO.Clone() as int[,]; break;
+            case MinoID.I: array = arrayI.Clone() as int[,]; break;
         }
-        for (int i = 0; i < (4 - rotation) % 4; i++)
+        for (int i = 0; i < (4 - rotationID) % 4; i++)
         {
-            array = Game.RotateMatrix(array, size);
+            array = Game.RotateMatrix(array, GetSize());
         }
     }
-    public Mino(int minoId)
+
+    public void CWRotate()      //顺时针旋转
     {
+        rotation = (rotation + 1) % 4;
 
+        int size = GetSize();
+        array = Game.RotateMatrix(array, size);
+        array = Game.RotateMatrix(array, size);
+        array = Game.RotateMatrix(array, size);
+    }
 
-        Mino S = new Mino();
-        Mino Z = new Mino();
-        Mino L = new Mino();
-        Mino J = new Mino();
-        Mino T = new Mino();
-        Mino O = new Mino();
-        Mino I = new Mino();
-        S.array = new int[,] { { 0, 0, 0 }, { 1, 1, 0 }, { 0, 1, 1 } };
-        S.size = 3;
-        S.name = "S";
-        S.rotation = 0;
-        S.id = 1;
+    public void CCWRotate()     //逆时针旋转
+    {
+        rotation = (rotation + 3) % 4;
 
-        Z.array = new int[,] { { 0, 0, 0 }, { 0, 1, 1 }, { 1, 1, 0 } };
-        Z.size = 3;
-        Z.name = "Z";
-        Z.rotation = 0;
-        Z.id = 2;
+        array = Game.RotateMatrix(array, GetSize());
+    }
 
-        L.array = new int[,] { { 0, 0, 0 }, { 1, 1, 1 }, { 0, 0, 1 } };
-        L.size = 3;
-        L.name = "L";
-        L.rotation = 0;
-        L.id = 3;
-
-        J.array = new int[,] { { 0, 0, 0 }, { 1, 1, 1 }, { 1, 0, 0 } };
-        J.size = 3;
-        J.name = "J";
-        J.rotation = 0;
-        J.id = 4;
-
-        T.array = new int[,] { { 0, 0, 0 }, { 1, 1, 1 }, { 0, 1, 0 } };
-        T.size = 3;
-        T.name = "T";
-        T.rotation = 0;
-        T.id = 5;
-
-        O.array = new int[,] { { 1, 1 }, { 1, 1 } };
-        O.size = 2;
-        O.name = "O";
-        O.rotation = 0;
-        O.id = 6;
-
-        I.array = new int[,] { { 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0 }, { 0, 1, 1, 1, 1 }, { 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0 } };
-        I.size = 5;
-        I.name = "I";
-        I.rotation = 0;
-        I.id = 7;
-        switch (minoId)
+    public int GetSize()       //获取块的数组尺寸
+    {
+        if (id == MinoID.I) { return 5; }
+        else if (id == MinoID.O)
         {
-            case 1: SetMino(S); break;
-            case 2: SetMino(Z); break;
-            case 3: SetMino(L); break;
-            case 4: SetMino(J); break;
-            case 5: SetMino(T); break;
-            case 6: SetMino(O); break;
-            case 7: SetMino(I); break;
+            return 2;
         }
-
+        else
+        {
+            return 3;
+        }
     }
 
-    private void SetMino(Mino m)
+    public string GetName() {
+        return IdToName(MinoIDToInt(id));
+    }
+    public int GetIdInt()
     {
-        this.array = m.array;
-        this.size = m.size;
-        this.name = m.name;
-        this.rotation = m.rotation;
-        this.id = m.id;
-        //Debug.LogFormat("方块id{0}", this.id);
+        return MinoIDToInt(id);
+    }
+    public static MinoID IntToMinoID(int i) {
+        return (MinoID)(i - 1);
+    }
+    public static int MinoIDToInt(MinoID i)
+    {
+        return (int)i + 1;
+
     }
 
-    public string IdToName(int id)
+    public override String ToString() {
+        return GetName() + " " + GetPosition().ToString() + " " + GetRotationId();
+    }
+
+    public static string IdToName(int id)
     {
         string name = "";
         switch (id)
@@ -175,12 +151,12 @@ public class Mino
         }
         return name;
     }
-    public int NameToId(string name)
+    public static int NameToId(string name)
     {
         int id = -1;
         switch (name)
         {
-            case "S":id = 1; break;
+            case "S": id = 1; break;
             case "Z": id = 2; break;
             case "L": id = 3; break;
             case "J": id = 4; break;
