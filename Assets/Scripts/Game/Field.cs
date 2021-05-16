@@ -292,15 +292,16 @@ public class Field
         }
     }
 
-    public bool IsAllClear()
+    public bool IsAllClear(int n)//从第n行往上，如果一块也没有，就是全消（此判定比消行要早）
     {
+        if (n <= 0) return false;
         for (int i = 0; i < 10; i++)
         {
-            for (int j = 0; j < 17; j++)
+            for (int j = n; j < 17; j++)
             {
                 if (array[i, j] > 20|| array[i, j] < 0)
                 {
-                    int a = array[i, j];
+                    Debug.Log(String.Format("not pc because array[{0},{1}]={2}", i, j,array[i, j]));
                     return false;
                 }
             }
@@ -338,7 +339,7 @@ public class Field
         return lines;
     }
 
-    public void Clear(Mino mino)
+    public int Clear(Mino mino)//消行并返回行数
     {
         int lines = 0;
         List<Vector2Int> l = GetAllCoordinates(mino);
@@ -365,6 +366,7 @@ public class Field
                 lines++;
             }
         }
+        return lines;
     }
     public void LockMino(Mino currentMino)
     {

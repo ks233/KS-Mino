@@ -14,7 +14,7 @@ public class Play : MonoBehaviour
     //几个延迟参数的设定
     public const float LOCK_DELAY = 1f;
     public const float GRAVITY = 0.5f;
-    public const float SARR = 0.1f;
+    public const float SARR = 0.001f;
     public const float DAS = 0.083f;//相当于60fps中的5帧
     public const float ARR = 0.0f;
 
@@ -58,20 +58,50 @@ public class Play : MonoBehaviour
     private Game GAME;
 
 
+    private float startTime;
 
-    private void InstChild(GameObject child,Vector3 position,GameObject parent) 
+    public Text TxtStats;
+    public Text TxtClearMsg;
+
+
+    private float GetCurrentTime()
+    {
+        System.TimeSpan time = DateTime.Now.TimeOfDay;//秒数精确到浮点数
+        float t = (float)time.TotalSeconds;//现在的时间
+        return t;
+    }
+
+    private float GetGameTime()
+    {
+        return GetCurrentTime() - startTime;
+    }
+
+    public void UpdateStats()
+    {
+        int piece = GAME.statPiece;
+        int atk = GAME.statAttack;
+        float gameTime = GetGameTime();
+
+        String s = String.Format("时间：{0:0.00}\n块数：{1}\n消行：{2}\n攻击：{3}\n", GetGameTime(),piece, GAME.statLine, atk);
+        s += String.Format("PPS：{0:0.00}\nAPM：{1:0.00}\n", piece/gameTime, atk/gameTime*60);
+
+        TxtStats.text = s;
+    }
+
+
+    private void InstChild(GameObject child,Vector3 position,GameObject parent) //实例化方块的prefab（方块）
     {
         Instantiate(child, position + parent.transform.position, Quaternion.identity, parent.transform);
 
     }
 
-    private void InstChild(GameObject child, Vector3 position, GameObject parent,float scale)
+    private void InstChild(GameObject child, Vector3 position, GameObject parent,float scale)//实例化prefab，带缩放（hold/next）
     {
         GameObject t = Instantiate(child, position + parent.transform.position, Quaternion.identity, parent.transform);
         t.transform.localScale = new Vector3(scale,scale,scale);
     }
 
-    private void InstChild(GameObject child, Vector3 position, GameObject parent, float scale,float alpha)
+    private void InstChild(GameObject child, Vector3 position, GameObject parent, float scale,float alpha)//实例化prefab，带缩放和透明度（砖块阴影）
     {
         GameObject t = Instantiate(child, position + parent.transform.position, Quaternion.identity, parent.transform);
         t.transform.localScale = new Vector3(scale, scale, scale);
@@ -80,8 +110,7 @@ public class Play : MonoBehaviour
         t.GetComponent<SpriteRenderer>().color = tmp;
     }
 
-
-    private void DestroyAllChild(GameObject parent) {
+    private void DestroyAllChild(GameObject parent) {//删除所有child object
         foreach (Transform child in parent.transform)
         {
             GameObject.Destroy(child.gameObject);
@@ -156,6 +185,7 @@ public class Play : MonoBehaviour
     void Start()
     {
         GAME = new Game();
+        startTime = GetCurrentTime();
     }
 
     void Update()
@@ -171,20 +201,20 @@ public class Play : MonoBehaviour
         UpdateFieldSprites();
         UpdateHold();
         UpdateNext();
+        UpdateStats();
         //f.SetField(game.field);
     }
 
     void FixedUpdate()
     {
-
-        System.TimeSpan time = DateTime.Now.TimeOfDay;//秒数精确到浮点数
-        float TIME = (float)time.TotalSeconds;//现在的时间
+        float TIME = GetCurrentTime();//现在的时间
         key_left = Input.GetKey("a");//左右
         key_right = Input.GetKey("d");
         key_softdrop = Input.GetKey("s");//软降
         if (key_restart)
         {
             GAME.Restart();
+            startTime = TIME;
         }
         if (GAME.Gaming())//游戏进行中
         {

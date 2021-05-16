@@ -126,7 +126,7 @@ public class ClearType
         {
             atk += tspinList[tSpinType];
         }
-        if (pc) atk += 6;
+        if (pc) atk += 10;
 
         return atk;
 

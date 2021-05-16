@@ -19,7 +19,12 @@ public class Game
     public Vector2Int[,] OFFSET_I;//I的踢墙表
 
 
-    public InputField nextSeq;
+    //数据
+    public int statLine =0;
+    public int statAttack =0;
+    public int statPiece =0;
+    public int statScore =0;
+
     public NextManager next;
 
     //public int[,] field = new int[10, 40];//10*20的盘面，预留20行，避免c4w玩家被顶到溢出（
@@ -30,18 +35,10 @@ public class Game
     public ClearType clearType = new ClearType();
     private bool wasB2B = false;
     private int combo = 0;
-
-    private float clearMsgTimer;
-
-    private int lastInput;
-    private bool arrTrigger = false;
-
-    private int count = 0;
     private bool gaming = true;
     private int hold = 0;
     private bool isHeld;
 
-    public Toggle useCustomNext;
 
 
     public Game()
@@ -106,9 +103,13 @@ public class Game
     }
 
 
+
     public void Restart()
     {
-        count = 0;
+        statAttack = 0;
+        statLine = 0;
+        statPiece = 0;
+        statScore = 0;
         gaming = true;
 
         //初始化40行10列的盘面
@@ -135,7 +136,6 @@ public class Game
             {
                 position = new Vector2Int(4, 20)
             };
-            count++;
             UpdateField();
             if (!field.IsValid(currentMino, currentMino.GetPosition())) GameOver();
 
@@ -328,7 +328,7 @@ public class Game
         //此时方块的位置和旋转都已经固定，开始消行性质检定
         int lines = field.LinesCanClear(currentMino);
         clearType.lines = lines;
-        clearType.pc = field.IsAllClear();
+        clearType.pc = field.IsAllClear(lines);
         if (currentMino.id == Mino.MinoID.T)//tspin判定
         {
             bool c, f, k;
@@ -368,8 +368,14 @@ public class Game
         }
         wasB2B = clearType.GetIsB2b();
 
+
+        statAttack += clearType.GetAttack();
+
     }
 
+    public void AfterLock() {       //子类继承时重写
+
+    }
 
     public int[,] GetFieldArray() {
         return field.array.Clone() as int[,];
@@ -380,17 +386,13 @@ public class Game
         if (field.LinesCanClear(currentMino) > 0)
         {
             CheckClearType();
-            field.Clear(currentMino);
+            statLine += field.Clear(currentMino);
         }
-
-
-        arrTrigger = false;
         isHeld = false;
-        Debug.Log(currentMino);
+        statPiece++;
         NextMino();
         UpdateField();
-
-        Debug.Log(currentMino);
+        AfterLock();
     }
 
     public int Fall()
@@ -437,6 +439,8 @@ public class Game
     {
         return hold;
     }
+
+
     public void Hold()
     {
 
