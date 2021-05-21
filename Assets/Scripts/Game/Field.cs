@@ -19,7 +19,6 @@ public class Field
 
     void ClearLine(int x)
     {
-        Debug.Log("clear");
         for (int i = x; i < 39; i++)
         {
             for (int j = 0; j < 10; j++)
@@ -40,115 +39,47 @@ public class Field
         }
     }
 
-    public bool IsValid(Mino mino, Vector2Int coordinate)
+
+    public bool IsValid(Mino mino)
     {
-        int minoId = mino.GetIdInt();
-        int x = coordinate.x;
-        int y = coordinate.y;
-        if (1 <= minoId && minoId <= 5)//3*3的mino
+        List<Vector2Int> l = GetAllCoordinates(mino);
+        foreach (Vector2Int v in l)
         {
-            for (int i = 0; i < 3; i++)//逐个方格检查
-            {
-                for (int j = 0; j < 3; j++)
-                {
-                    if (mino.array[j, i] == 1)
-                    {
-                        if (coordinate.x + i - 1 > 9 || coordinate.x + i - 1 < 0) return false;
-                        if (coordinate.y + j - 1 < 0) return false;
-                        if (array[coordinate.x + i - 1, coordinate.y + j - 1] < 0) return false;
-                    }
-                }
-            }
-        }
-        if (minoId == 6)
-        {
-            for (int i = 0; i < 2; i++)
-            {
-                for (int j = 0; j < 2; j++)
-                {
-                    if (coordinate.x + i > 9 || coordinate.x + i < 0) return false;
-                    if (coordinate.y < 0) return false;
-                    if (array[coordinate.x + i, coordinate.y + j] < 0) return false;
-                }
-            }
-        }
-        if (minoId == 7)
-        {
-            for (int i = -2; i < 3; i++)
-            {
-                for (int j = -2; j < 3; j++)
-                {
-                    if (mino.array[j + 2, i + 2] == 1)
-                    {
-                        if (x + i > 9 || x + i < 0) return false;
-                        if (y + j < 0) return false;
-                        if (array[x + i, y + j] < 0) return false;
-                    }
-                }
-            }
+            int i = v.x;
+            int j = v.y;
+            if (i > 9 || i < 0) return false;
+            if (j < 0) return false;
+            if (array[i, j] != 0) return false;
         }
         return true;
     }
 
-    public bool IsValid(Mino mino, int rotationId, Vector2Int coordinate)
+    public bool IsValid(Mino mino, Vector2Int centerPos)
     {
-        int size = mino.GetSize();
         int minoId = mino.GetIdInt();
-        int[,] testMino;
-        testMino = new Mino(minoId).array;
-        for (int i = 0; i < (4 - rotationId) % 4; i++)
-        {
-            testMino = Game.RotateMatrix(testMino, size);
-        }
-        if (1 <= minoId && minoId <= 5)
-        {
+        int x = centerPos.x;
+        int y = centerPos.y;
+        Mino tmpMino = new Mino(mino.id);
+        tmpMino.SetRotation(mino.GetRotationId());
+        tmpMino.SetPosition(centerPos);
 
-
-
-            for (int i = 0; i < 3; i++)
-            {
-                for (int j = 0; j < 3; j++)
-                {
-                    if (testMino[j, i] == 1)
-                    {
-                        if (coordinate.x + i - 1 > 9 || coordinate.x + i - 1 < 0) return false;
-                        if (coordinate.y + j - 1 < 0) return false;
-                        if (array[coordinate.x + i - 1, coordinate.y + j - 1] < 0) return false;
-                    }
-                }
-            }
-        }
-        if (minoId == 6)
-        {
-            for (int i = 0; i < 2; i++)
-            {
-                for (int j = 0; j < 2; j++)
-                {
-                    if (coordinate.x + i > 9 || coordinate.x + i < 0) return false;
-                    if (coordinate.y < 0) return false;
-                    if (array[coordinate.x + i, coordinate.y + j] < 0) return false;
-                }
-            }
-        }
-        if (minoId == 7)
-        {
-            int x, y;
-            x = coordinate.x;
-            y = coordinate.y;
-            for (int i = -2; i < 3; i++)
-            {
-                for (int j = -2; j < 3; j++)
-                {
-                    if (testMino[j + 2, i + 2] == 1)
-                    {
-                        if (x + i > 9 || x + i < 0) return false;
-                        if (y + j < 0) return false;
-                        if (array[x + i, y + j] < 0) return false;
-                    }
-                }
-            }
+        List<Vector2Int> l = GetAllCoordinates(tmpMino);
+        foreach(Vector2Int v in l) {
+            int i = v.x;
+            int j = v.y;
+            if (i > 9 || i < 0) return false;
+            if (j < 0) return false;
+            if (array[i, j] != 0) return false;
         }
         return true;
+    }
+
+    public bool IsValid(Mino mino, int rotationId, Vector2Int centerPos)
+    {
+
+        Mino t = new Mino(mino.id);
+        t.SetRotation(rotationId);
+        return IsValid(t, centerPos);
     }
 
     public bool HasThreeCorners(Mino tMino)//判定tspin的条件之一
@@ -202,24 +133,24 @@ public class Field
     }
 
 
-    public List<Vector2Int> GetAllCoordinates(Mino currentMino)//mino四个格子的坐标
+    public static List<Vector2Int> GetAllCoordinates(Mino m)//mino四个格子的坐标
     {
         List<Vector2Int> l = new List<Vector2Int>();
-        int size = currentMino.GetSize();
+        int size = m.GetSize();
         if (size == 3)
         {
             for (int i = 0; i < size; i++)
                 for (int j = 0; j < size; j++)
-                    if (currentMino.array[j, i] == 1)
-                        l.Add(new Vector2Int(i - 1 + currentMino.position.x, j - 1 + currentMino.position.y));
+                    if (m.array[j, i] == 1)
+                        l.Add(new Vector2Int(i - 1 + m.position.x, j - 1 + m.position.y));
 
         }
         else if (size == 5)
         {
             for (int i = 0; i < size; i++)
                 for (int j = 0; j < size; j++)
-                    if (currentMino.array[j, i] == 1)
-                        l.Add(new Vector2Int(i - 2 + currentMino.position.x, j - 2 + currentMino.position.y));
+                    if (m.array[j, i] == 1)
+                        l.Add(new Vector2Int(i - 2 + m.position.x, j - 2 + m.position.y));
 
         }
 
@@ -228,7 +159,7 @@ public class Field
 
             for (int i = 0; i < size; i++)
                 for (int j = 0; j < size; j++)
-                    l.Add(new Vector2Int(i + currentMino.position.x, j + currentMino.position.y));
+                    l.Add(new Vector2Int(i + m.position.x, j + m.position.y));
         }
         return l;
     }
@@ -280,6 +211,16 @@ public class Field
 
     }
 
+
+    public int LandHeight(Mino m) {
+        Vector2Int pos = m.position;
+        while (IsValid(m,pos)) {
+            pos.y--;
+        }
+        return pos.y + 1;
+    }
+
+
     public void Clear()
     {
         for (int i = 0; i < 10; i++)
@@ -292,6 +233,7 @@ public class Field
         }
     }
 
+
     public bool IsAllClear(int n)//从第n行往上，如果一块也没有，就是全消（此判定比消行要早）
     {
         if (n <= 0) return false;
@@ -299,9 +241,9 @@ public class Field
         {
             for (int j = n; j < 17; j++)
             {
-                if (array[i, j] > 20|| array[i, j] < 0)
+                if (array[i, j]!=0)
                 {
-                    Debug.Log(String.Format("not pc because array[{0},{1}]={2}", i, j,array[i, j]));
+                    //Debug.Log(String.Format("not pc because array[{0},{1}]={2}", i, j,array[i, j]));
                     return false;
                 }
             }
@@ -309,7 +251,7 @@ public class Field
         return true;
     }
 
-    public int LinesCanClear(Mino mino)//消行并返回消除的行数
+    public int LinesCanClear(Mino mino)//返回可消除的行数
     {
         int lines = 0;
         List<Vector2Int> l = GetAllCoordinates(mino);
@@ -328,7 +270,7 @@ public class Field
             bool canClear = true;
             for (int j = 0; j < 10; j++)
             {
-                if (array[j, y] >= 0) canClear = false;
+                if (array[j, y] == 0) canClear = false;
             }
             if (canClear)
             {
@@ -358,7 +300,7 @@ public class Field
             bool canClear = true;
             for (int j = 0; j < 10; j++)
             {
-                if (array[j, y - lines] >= 0) canClear = false;
+                if (array[j, y - lines] == 0) canClear = false;
             }
             if (canClear)
             {
@@ -374,8 +316,7 @@ public class Field
         List<Vector2Int> l = GetAllCoordinates(currentMino);
         foreach (Vector2Int pos in l)
         {
-            array[pos.x, pos.y] = -currentMino.GetIdInt();
-            Debug.Log(-currentMino.GetIdInt());
+            array[pos.x, pos.y] = currentMino.GetIdInt();
         }
     }
 

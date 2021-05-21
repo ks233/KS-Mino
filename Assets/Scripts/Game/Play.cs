@@ -12,7 +12,7 @@ public class Play : MonoBehaviour
 
 
     //几个延迟参数的设定
-    public const float LOCK_DELAY = 1f;
+    public const float LOCK_DELAY = 0.5f;//guideline规定
     public const float GRAVITY = 0.5f;
     public const float SARR = 0.001f;
     public const float DAS = 0.083f;//相当于60fps中的5帧
@@ -30,6 +30,9 @@ public class Play : MonoBehaviour
     private bool key_hold;
     private bool key_restart;
 
+    private bool key_debug;
+
+
     //对于左右同时按的优化
     private bool turnback = false;
 
@@ -40,14 +43,10 @@ public class Play : MonoBehaviour
 
     public GameObject HoldArea;
     public GameObject NextArea;
-
-
-    public Sprite[,] FieldSprites;
+    public GameObject ActiveMinoParent;
 
     private int lastInput;
     private bool arrTrigger = false;
-
-    public TextMesh clearMsg;
 
     private float fallTimer;
     private float lockTimer;
@@ -55,14 +54,19 @@ public class Play : MonoBehaviour
     private float arrTimer;
     private float clearMsgTimer;
 
-    private Game GAME;
+    public Game game;
 
+    private float prevFrameTime;
 
-    private float startTime;
+    private float gameTime;
 
     public Text TxtStats;
     public Text TxtClearMsg;
 
+
+    private bool locked = false;//避免同一个FixedUpdate里调用多次LockMino
+
+    private bool gameover = false;
 
     private float GetCurrentTime()
     {
@@ -71,152 +75,217 @@ public class Play : MonoBehaviour
         return t;
     }
 
-    private float GetGameTime()
-    {
-        return GetCurrentTime() - startTime;
-    }
 
     public void UpdateStats()
     {
-        int piece = GAME.statPiece;
-        int atk = GAME.statAttack;
-        float gameTime = GetGameTime();
+        int piece = game.statPiece;
+        int atk = game.statAttack;
 
-        String s = String.Format("时间：{0:0.00}\n块数：{1}\n消行：{2}\n攻击：{3}\n", GetGameTime(),piece, GAME.statLine, atk);
-        s += String.Format("PPS：{0:0.00}\nAPM：{1:0.00}\n", piece/gameTime, atk/gameTime*60);
+        String s = String.Format("时间：{0:0.00}\n块数：{1}\n消行：{2}\n攻击：{3}\n", gameTime, piece, game.statLine, atk);
+        s += String.Format("PPS：{0:0.00}\nAPM：{1:0.00}\n", piece / gameTime, atk / gameTime * 60);
 
         TxtStats.text = s;
     }
 
-
-    private void InstChild(GameObject child,Vector3 position,GameObject parent) //实例化方块的prefab（方块）
+    private void UpdateActiveMinoDisplay()
     {
-        Instantiate(child, position + parent.transform.position, Quaternion.identity, parent.transform);
+        DestroyAllChild(ActiveMinoParent);
+        Mino tmpMino = game.GetActiveMino();
 
+        //方块
+        List<Vector2Int> l = Field.GetAllCoordinates(game.activeMino);
+        int ghostDist = tmpMino.GetPosition().y - game.GetGhostY();
+        foreach (Vector2Int v in l)
+        {
+            DisplayUtils.InstChild(MinoTiles[tmpMino.GetIdInt() - 1], new Vector3(v.x, v.y, 0), ActiveMinoParent);
+            if (game.Gaming())
+            {
+
+                DisplayUtils.InstChild(MinoTiles[tmpMino.GetIdInt() - 1], new Vector3(v.x, v.y - ghostDist, 0), ActiveMinoParent, 1, 0.5f);
+            }
+        }
     }
 
-    private void InstChild(GameObject child, Vector3 position, GameObject parent,float scale)//实例化prefab，带缩放（hold/next）
-    {
-        GameObject t = Instantiate(child, position + parent.transform.position, Quaternion.identity, parent.transform);
-        t.transform.localScale = new Vector3(scale,scale,scale);
-    }
 
-    private void InstChild(GameObject child, Vector3 position, GameObject parent, float scale,float alpha)//实例化prefab，带缩放和透明度（砖块阴影）
-    {
-        GameObject t = Instantiate(child, position + parent.transform.position, Quaternion.identity, parent.transform);
-        t.transform.localScale = new Vector3(scale, scale, scale);
-        Color tmp = t.GetComponent<SpriteRenderer>().color;
-        tmp.a = alpha;
-        t.GetComponent<SpriteRenderer>().color = tmp;
-    }
-
-    private void DestroyAllChild(GameObject parent) {//删除所有child object
+    private void DestroyAllChild(GameObject parent)
+    {//删除所有child object
         foreach (Transform child in parent.transform)
         {
             GameObject.Destroy(child.gameObject);
         }
     }
 
-    private void UpdateHold()
+    private void UpdateHoldDisplay()
     {
-        int holdid = GAME.GetHoldId();
+        int holdid = game.GetHoldId();
         DestroyAllChild(HoldArea);
         if (holdid != 0)
         {
-            InstChild(Minoes[holdid-1], Vector3Int.zero, HoldArea);
+            DisplayUtils.InstChild(Minoes[holdid - 1], Vector3Int.zero, HoldArea);
         }
     }
 
-    private void UpdateNext()
+    private void UpdateNextDisplay()
     {
         DestroyAllChild(NextArea);
-        int[] nextSeq = GAME.GetNextSeq();
-        for (int i = 0; i < MAX_NEXT; i++) {
+        int[] nextSeq = game.GetNextSeq();
+        for (int i = 0; i < MAX_NEXT; i++)
+        {
             int id = nextSeq[i];
             Vector3 offset = Vector3.zero;
             if (id == Mino.NameToId("J"))
             {
                 offset.x = -0.5f;
             }
-            else if (id == Mino.NameToId("I")) {
+            else if (id == Mino.NameToId("I"))
+            {
                 offset.x = 0.5f;
             }
             else if (id == Mino.NameToId("O"))
             {
                 offset.y = 0.5f;
             }
-            InstChild(Minoes[nextSeq[i] - 1], new Vector3(0,-2.5f*i,0)+offset, NextArea,0.8f);
+            DisplayUtils.InstChild(Minoes[nextSeq[i] - 1], new Vector3(0, -2.5f * i, 0) + offset, NextArea, 0.8f);
         }
     }
 
-    private void UpdateFieldSprites()
+    public void UpdateFieldDisplay()
     {
-        int[,] field = GAME.GetFieldArray();
+        DestroyAllChild(ParentField);
+        int[,] field = game.GetFieldArray();
 
+
+
+
+        //InstChild(Minoes[activeMinoId-1], tmp, ParentField,1,0.6f);
+
+        //场地
         for (int x = 0; x < 10; x++)
         {
             for (int y = 0; y < 20; y++)
             {
-                if (field[x, y] == 0)
-                {
-                }
-                if (field[x, y] > 0 && field[x, y] < 20)//正在下落的
-                {
-                    InstChild(MinoTiles[field[x, y] - 1], new Vector3(x, y, 0),ParentField);
-                }
-                if (field[x, y] < 0)//已经锁定的
-                {
-                    InstChild(MinoTiles[-field[x, y] - 1], new Vector3(x, y, 0), ParentField);
-                }
-                if (field[x, y] > 20)//砖影
-                {
-                    InstChild(MinoTiles[field[x, y] - 21], new Vector3(x, y, 0), ParentField,1f,0.5f);
-                }
+                if (1 <= field[x, y] && field[x, y] <= 7)
+                    DisplayUtils.InstChild(MinoTiles[field[x, y] - 1], new Vector3(x, y, 0), ParentField);
             }
         }
-    }
-
-    private void DestroyPreviousSprites()
-    {
-        DestroyAllChild(ParentField);
     }
 
 
     void Start()
     {
-        GAME = new Game();
-        startTime = GetCurrentTime();
+        game = new Game();
+        Restart();
+    }
+    public void Restart()
+    {
+        gameover = false;
+        game.Restart();
+        gameTime = 0;
+        prevFrameTime = GetCurrentTime();
+        UpdateHoldDisplay();
+        UpdateNextDisplay();
+        UpdateFieldDisplay();
+        UpdateActiveMinoDisplay();
+    }
+
+    private void ShowClearMsg(string msg)
+    {
+        if (msg != "")
+        {
+            clearMsgTimer = GetCurrentTime();
+
+            TxtClearMsg.text = msg;
+        }
     }
 
     void Update()
     {
-
+        float TIME = GetCurrentTime();//现在的时间
+        if (PauseMenu.GameIsPaused)
+        {
+            prevFrameTime = TIME;
+        }
+        else
+        {
+            gameTime += TIME - prevFrameTime;
+            prevFrameTime = TIME;
+        }
         key_harddrop = Input.GetKeyDown("space");//硬降
         key_hold = Input.GetKeyDown("w");//hold
         key_restart = Input.GetKeyDown("f4");
 
         key_cw = Input.GetKeyDown("right");
         key_ccw = Input.GetKeyDown("left");
-        DestroyPreviousSprites();
-        UpdateFieldSprites();
-        UpdateHold();
-        UpdateNext();
-        UpdateStats();
+
+        key_debug = Input.GetKeyDown("b");
+        if (game.Gaming())
+        {
+
+            UpdateStats();
+        }
+        else {
+            if (!gameover)
+            {
+                int[,] field = game.GetFieldArray();
+
+                string s = "";
+
+
+                //InstChild(Minoes[activeMinoId-1], tmp, ParentField,1,0.6f);
+
+                //场地
+                for (int y = 0; y < 23; y++)
+                {
+                    for (int x = 0; x < 10; x++)
+                    {
+
+                        s += field[x, 22 - y];
+                    }
+                    s += "\n";
+                }
+                Debug.Log(s);
+                gameover = true;
+            }
+        }
+
         //f.SetField(game.field);
+    }
+
+
+    private int Lock(out ClearType ct)
+    {
+        if (!locked)
+        {
+            return game.LockMino(out ct);
+        }
+        else {
+            ct = new ClearType();
+            return 0;
+        }
+    }
+
+    private void ResetLockTimer()
+    {
+        lockTimer = 0;
     }
 
     void FixedUpdate()
     {
+
+
         float TIME = GetCurrentTime();//现在的时间
+
+        locked = false;
+        
+
         key_left = Input.GetKey("a");//左右
         key_right = Input.GetKey("d");
         key_softdrop = Input.GetKey("s");//软降
         if (key_restart)
         {
-            GAME.Restart();
-            startTime = TIME;
+            Restart();
         }
-        if (GAME.Gaming())//游戏进行中
+        if (game.Gaming())//游戏进行中
         {
             int input = 0;
             if (key_left && key_right)
@@ -249,17 +318,30 @@ public class Play : MonoBehaviour
 
             if (key_hold)
             {
-                GAME.Hold();
+                if (game.Hold() == 0)
+                {
+                    UpdateHoldDisplay();
+                    UpdateNextDisplay();
+                    UpdateActiveMinoDisplay();
+                }
                 key_hold = false;
             }
             if (key_ccw)
             {
-                GAME.CCWRotate();//逆时针旋转
+                if (game.CCWRotate() == 0) {
+                    UpdateActiveMinoDisplay();//逆时针旋转
+                    ResetLockTimer();
+                }
                 key_ccw = false;
             }
             if (key_cw)
             {
-                GAME.CWRotate();
+
+                if (game.CWRotate() == 0)
+                {
+                    UpdateActiveMinoDisplay();
+                    ResetLockTimer();
+                }
                 //顺时针旋转
 
                 key_cw = false;
@@ -267,8 +349,25 @@ public class Play : MonoBehaviour
 
             if (key_harddrop)
             {
-                GAME.HardDrop();//硬降
+                ClearType ct;
+                int hdCells;
+                game.Harddrop(out hdCells);//硬降
+                if(Lock(out ct) > 0)
+                {
+                    ShowClearMsg(ct.ToString());//显示消行信息
+                    if (ct.GetAttack() >= 4)
+                    {
+                        //特效
+                    }
+                }
+                game.NextMino();
+                UpdateNextDisplay();
+                UpdateFieldDisplay();
+                UpdateActiveMinoDisplay();
                 key_harddrop = false;
+                ResetLockTimer();
+                locked = true;
+
             }
 
             if (input != 0)
@@ -286,23 +385,37 @@ public class Play : MonoBehaviour
 
                     if (dasTimer == 0)//按下按键后移动的第一下
                     {
-                        GAME.Move(input);
-                        dasTimer = TIME;
+                        if (game.Move(input) == 0)
+                        {
+                            dasTimer = TIME;
+                            UpdateActiveMinoDisplay();
+
+                            ResetLockTimer();
+                        }
                     }
                     else if (TIME - dasTimer >= DAS)//经过das延迟后移动第二下
                     {
                         dasTimer = 0;
                         arrTrigger = true;
-                        GAME.Move(input);
+                        if (game.Move(input) == 0)
+                        {
+                            UpdateActiveMinoDisplay();
+                            ResetLockTimer();
+                        }
                     }
                 }
                 else
                 {
                     if (ARR == 0) //真·0ARR
                     {
-                        for (int i = 0; i < 9; i++) {
-                            GAME.Move(input);
+                        for (int i = 0; i < 9; i++)
+                        {
+                            if (game.Move(input) == 0)
+                            {
+                                ResetLockTimer();
+                            }
                         }
+                        UpdateActiveMinoDisplay();
                     }
                     else
                     {
@@ -310,7 +423,12 @@ public class Play : MonoBehaviour
                             arrTimer = TIME;
                         if (TIME - arrTimer >= ARR)
                         {
-                            GAME.Move(input);
+                            if (game.Move(input) == 0)
+                            {
+                                
+                                ResetLockTimer();
+                                UpdateActiveMinoDisplay();
+                            }
                             arrTimer = TIME;
                         }
                     }
@@ -329,9 +447,10 @@ public class Play : MonoBehaviour
             if (TIME - fallTimer >= (key_softdrop ? SARR : GRAVITY))
             {//每0.5s降落一次
 
-                if (GAME.Fall() == 0)//如果成功下落1格
+                if (game.Fall() == 0)//如果成功下落1格
                 {
-                    lockTimer = 0;
+                    UpdateActiveMinoDisplay();
+                    ResetLockTimer();
                 }
                 else
                 { //如果已经到底了
@@ -346,9 +465,20 @@ public class Play : MonoBehaviour
             {
                 if (TIME - lockTimer >= LOCK_DELAY)
                 {
-                    GAME.LockMino();
-                    lockTimer = 0;
-                    // f.UpdateNextTilemap(game.next);
+                    if (!locked)
+                    {
+                        ClearType ct;
+                        if (Lock(out ct) > 0)
+                        {
+                            ShowClearMsg(ct.ToString());//显示消行信息
+                        }
+                        //涨垃圾行
+                        game.NextMino();
+                        UpdateFieldDisplay();
+                        UpdateActiveMinoDisplay();
+                        UpdateNextDisplay();
+                    }
+                    ResetLockTimer();
 
                 }
             }
@@ -358,9 +488,15 @@ public class Play : MonoBehaviour
 
         if (TIME - clearMsgTimer >= 2 && clearMsgTimer != 0)
         {
-            clearMsg.text = "";
+            TxtClearMsg.text = "";
             clearMsgTimer = 0;
+        }
+
+        if (key_debug)
+        {
+
+
+            key_debug = false;
         }
     }
 }
-

@@ -25,6 +25,22 @@ public class Mino
     private static readonly int[,] arrayO = new int[,] { { 1, 1 }, { 1, 1 } };
     private static readonly int[,] arrayI = new int[,] { { 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0 }, { 0, 1, 1, 1, 1 }, { 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0 } };
 
+    public override bool Equals(object obj)
+    {
+        if (obj.GetType() == this.GetType())
+        {
+            Mino m = obj as Mino;
+            return m.id == id && m.position.x == position.x && m.position.y == position.y && m.rotation == rotation;
+        }
+
+        return base.Equals(obj);
+    }
+
+    public Mino Clone()
+    {
+        return (Mino)MemberwiseClone();
+    }
+
     public Mino()               //不带参数的构造函数,默认初始化一个S块
     {
         id = MinoID.S;
@@ -49,14 +65,35 @@ public class Mino
     }
 
 
+    public Mino(int _id,int x,int y,int _rotation)     //构造指定ID的块
+    {
+        id = IntToMinoID(_id);
+        rotation = _rotation;
+        position = new Vector2Int(x, y);
+        SetArray(id, rotation);
+    }
+
+
+
     public int GetRotationId()
     {
         return rotation;
     }
 
-    public void SetRotationId(int r)
+    public void SetPosition(int x, int y) {
+        position.x = x;
+        position.y = y;
+    }
+
+    public void SetPosition(Vector2Int v) 
+    {
+        position = v;
+    }
+
+    public void SetRotation(int r)
     {
         rotation = r;
+        SetArray(id, rotation);
     }
 
     public void Move(Vector2Int delta) {
@@ -66,6 +103,11 @@ public class Mino
 
     public Vector2Int GetPosition() {
         return position;
+    }
+
+    public Vector3 GetPosition3()
+    {
+        return new Vector3(position.x,position.y,0);
     }
     public void SetArray(MinoID id, int rotationID)         //初始化ID对应的数组
     {

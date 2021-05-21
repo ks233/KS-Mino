@@ -11,9 +11,8 @@ public class ClearType
     public bool tSpin;
     public int tSpinType;//默认-1，0mini 1single 2double 3triple
     public bool pc;
-
-    private bool isB2b;
-    private int[] comboList = { 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5 };
+    private int[] comboList = { 0, 0, 1, 1, 1, 2, 2, 3, 3, 4, 4, 4, 5 };
+    private const int COMBO_LIST_LEN = 12;
     private int[] clearList = { 0, 0, 1, 2, 4 };
 
     private int[] tspinList = { 0, 2, 4, 6 };//mini single double triple
@@ -25,7 +24,6 @@ public class ClearType
         combo = clearCombo;
         wasB2b = isB2b;
         tSpinType = tType;
-        isB2b = false;
         tSpin = isTSpin;
         pc = isPc;
     }
@@ -35,16 +33,53 @@ public class ClearType
         lines = 0;
         combo = 0;
         wasB2b = false;
-        isB2b = false;
         tSpin = false;
         tSpinType = -1;
         pc = false;
 
     }
 
-    public string ClearMessage()
+    public ClearType Clone()
     {
-        isB2b = (lines == 4 || tSpin);
+        return (ClearType)this.MemberwiseClone();
+    }
+
+    public float GetScore(int level) {
+
+        float score = 0;
+        bool isB2b = (lines == 4 || tSpin);
+        if (tSpin)
+        {
+            switch (tSpinType)
+            {
+                case 0: score += 200; break;        //mini
+                case 1: score += 800; break;        //t1
+                case 2: score += 1200; break;       //t2
+                case 3: score += 1600; break;       //t3
+            }
+        }
+        else
+        {
+            switch (lines)
+            {
+                case 1: score = 100; break;         //1
+                case 2: score = 300; break;         //2
+                case 3: score = 500; break;         //3
+                case 4: score = 800; break;         //tetris
+            }
+        }
+        if (isB2b && wasB2b) score *= 1.5f;         //b2b
+        if (combo > 0) score += 50 * combo;         //combo
+        if (pc)                                     //pc
+        {
+            score += 3000;
+        }
+        return score * level;
+    }
+
+    public override string ToString()
+    {
+        bool isB2b = (lines == 4 || tSpin);
         string msg = "";
         if (combo > 0) msg += combo + " Ren\n";
         if (isB2b && wasB2b) msg += "Back To Back\n";
@@ -66,13 +101,14 @@ public class ClearType
                 case 1: msg += " Single"; break;
                 case 2: msg += " Double"; break;
                 case 3: msg += " Triple"; break;
-                case 4: msg += " 很有精神！！！"; break;
+                case 4: msg += " Tetris"; break;
             }
         }
         if (pc)
         {
             msg += "\nPerfect Clear";
         }
+        Debug.LogFormat("line={0}", lines);
 
         return msg;
     }
@@ -80,7 +116,7 @@ public class ClearType
     public string ToMissionString()
     {
         string s = "";
-        if (lines == 4) s = "Ketris";
+        if (lines == 4) s = "Tetris";
         if (tSpin)
         {
             s = "T-Spin";
@@ -107,16 +143,16 @@ public class ClearType
 
     public bool GetIsB2b()
     {
-        isB2b = (lines == 4 || tSpin);
-        return isB2b;
+        return lines == 4 || tSpin;
+     
     }
     public int GetAttack()
     {
-        isB2b = (lines == 4 || tSpin);
+        
         int atk = 0;
         if(combo>0)
-            atk += comboList[combo];
-        if (isB2b && wasB2b)
+            atk += combo > COMBO_LIST_LEN ? comboList[COMBO_LIST_LEN] :comboList[combo];
+        if (GetIsB2b() && wasB2b)
             atk++;
         if (!tSpin)
         {
