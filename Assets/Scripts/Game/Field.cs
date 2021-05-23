@@ -8,9 +8,236 @@ public class Field
 {
     public int[,] array = new int[10, 40];//10*20的盘面，预留20行，避免c4w玩家被顶到溢出（
 
+    public int[] top = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
     private int ghostDist;//阴影距离
 
-    public bool kicked = false;//判断tspin的条件之一：是否踢墙过
+    public int count;
+
+    public void Count()
+    {
+        count = 0;
+        for (int i = 0; i < 10; i++)
+        {
+            for (int j = 0; j < 25; j++)
+            {
+                if(array[i, j] != 0)count++;
+            }
+        }
+    }
+
+    public int GetScore()
+    {
+
+        UpdateTop();
+        Count();
+        int bump = Bumpiness();
+        int maxBump = MaxBump();
+        int holes = CountHole();
+        int contSurface = ContinuousSurface();
+        int blockAboveHole = BlockAboveHole();
+
+
+        int score = 1000;
+
+        if (bump > 6)
+        {
+            score -= bump * 40;
+
+        }
+        else if (bump > 4)
+        {
+            score -= bump * 50;
+        }
+        else
+        {
+            //score -= bump * 10;
+        }
+
+        score -= maxBump * 30;
+
+
+
+        score -= (contSurface) * 40;
+        score -= holes * 300;
+
+        if (count > 120)
+        {
+            score -= (count - 120) * 50;
+        }
+
+        score -= blockAboveHole * 30;
+        if (maxBump == 0 && bump == 0 && (contSurface == 2 || contSurface == 3))
+        {
+            score = 900;
+        }
+        return score;
+
+    }
+
+    public int GetScore(Mino mino)
+    {
+        Field f = new Field();
+        f.array = array.Clone() as int[,];
+        f.LockMino(mino);
+        if (f.LinesCanClear(mino) > 0)
+        {
+            f.Clear(mino);
+        }
+        return f.GetScore();
+    }
+
+
+
+    public void UpdateTop(int col)
+    {
+        for(int i = 22; i >= 0; i--)
+        {
+            if(array[col,i] != 0)
+            {
+                top[col] = i+1;
+                return;
+            }
+        }
+        top[col] = 0;
+    }
+
+    public int ContinuousSurface()
+    {
+        int count = 1;
+        int tmp = top[0];
+        for (int i = 1; i < 10; i++)
+        {
+            if (top[i] != tmp)
+            {
+                tmp = top[i];
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public void UpdateTop()
+    {
+        for (int i = 0; i < 10; i++)
+        {
+            UpdateTop(i);
+        }
+    }
+
+    public int Bumpiness(int a,int b)
+    {
+        if (b <= a) return 0;
+        int bumpiness=0;
+        for (int i = a; i <= b-1; i++)
+        {
+            bumpiness += Math.Abs(top[i]-top[i+1]);
+        }
+        return bumpiness;
+    }
+
+    public int LowestCol()
+    {
+        int col = 0;
+        for(int i = 0; i < 10; i++)
+        {
+            if (top[i] < top[col]) col = i;
+        }
+        return col;
+    }
+
+    /*
+    public int Bumpiness()
+    {
+        int lowestCol = LowestCol();
+        int bumpiness = 0;
+        for (int i = 0; i < 9; i++)
+        {
+            if (i == lowestCol) continue;
+            if(i == lowestCol - 1)
+            {
+                if (lowestCol == 9) continue;
+                bumpiness += Math.Abs(top[i] - top[i + 2]);
+            }
+            else
+            {
+                bumpiness += Math.Abs(top[i] - top[i + 1]);
+            }
+        }
+        return bumpiness;
+    }
+    */
+ public int Bumpiness()
+ {
+     int bumpiness = 0;
+     for (int i = 0; i < 9; i++)
+     {
+         bumpiness += Math.Abs(top[i] - top[i + 1]);
+
+     }
+     return bumpiness;
+ }
+
+
+    public int MaxBump(int a, int b)
+    {
+        int max = 0;
+        for (int i = a; i <= b - 1; i++)
+        {
+            max = Math.Max(max, Math.Abs(top[i] - top[i + 1]));
+        }
+        return max;
+    }
+    public int MaxBump()
+    {
+        int lowestCol = LowestCol();
+        return MaxBump(0, lowestCol - 1) + MaxBump(lowestCol + 1, 9);
+    }
+
+
+    public int CountHole()
+    {
+        int hole = 0;
+        for (int x = 0; x < 10; x++)
+        {
+            for(int y = top[x]-1; y >= 0; y--)
+            {
+                if (array[x,y] == 0) hole++;
+            }
+        }
+        return hole;
+    }
+
+    public int BlockAboveHole()
+    {
+        int blockAboveHole = 0;
+        for (int x = 0; x < 10; x++)
+        {
+            for (int y = 0; y < top[x]; y++)
+            {
+                /*
+                if (array[x, y] != 0)
+                {
+                    t++;
+                }
+                else
+                {
+                    blockAboveHole += t;
+                    break;
+                }*/
+                if(array[x,y] == 0)
+                {
+                    for(int i = y+1; i < top[x]; i++)
+                    {
+                        blockAboveHole++;
+                    }
+                    break;
+                }
+            }
+        }
+        return blockAboveHole;
+    }
+
 
     public Field()
     {
@@ -24,8 +251,6 @@ public class Field
             for (int j = 0; j < 10; j++)
                 array[j, i] = array[j, i + 1];
         }
-        kicked = false;
-
     }
 
     public void ClearAll()

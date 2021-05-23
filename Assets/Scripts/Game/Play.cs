@@ -351,7 +351,7 @@ public class Play : MonoBehaviour
             {
                 ClearType ct;
                 int hdCells;
-                game.Harddrop(out hdCells);//硬降
+                game.Drop(out hdCells);//硬降
                 if(Lock(out ct) > 0)
                 {
                     ShowClearMsg(ct.ToString());//显示消行信息
@@ -367,7 +367,6 @@ public class Play : MonoBehaviour
                 key_harddrop = false;
                 ResetLockTimer();
                 locked = true;
-
             }
 
             if (input != 0)

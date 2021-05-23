@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Linq;
 
 public class AITest : MonoBehaviour
 {
@@ -38,7 +39,11 @@ public class AITest : MonoBehaviour
     private List<SearchNode> nodes;
     private int nodesIndex = 0;
     public Text txtNodeIndex;
+    public Text txtScore;
 
+
+    private bool pause = true;
+    private float aiTimer;
 
     private float GetCurrentTime()
     {
@@ -109,6 +114,29 @@ public class AITest : MonoBehaviour
         }
     }
 
+    public void PutMino()
+    {
+
+        List<SearchNode> landpoints = PathSearch.GetLandPoints(game.field, new Mino(game.GetActiveMinoId(), 4, 19, 0));
+
+        for (int i = 0; i < landpoints.Count; i++)
+        {
+            landpoints[i].score = game.field.GetScore(landpoints[i].mino);
+        }
+        List<SearchNode> SortedList = landpoints.OrderByDescending(o => o.score).ToList();
+
+        landpoints = SortedList;
+
+        game.SetActiveMino(landpoints[0].mino);
+        ClearType ct;
+        game.LockMino(out ct);
+        game.NextMino();
+
+        UpdateFieldDisplay();
+        UpdateNextDisplay();
+    }
+
+
     public void ShowMino(int minoID,int x,int y,int rotation)
     {
         Mino mino = new Mino(minoID,x,y,rotation);
@@ -136,7 +164,6 @@ public class AITest : MonoBehaviour
 
 
 
-
         //InstChild(Minoes[activeMinoId-1], tmp, ParentField,1,0.6f);
 
         //场地
@@ -155,37 +182,65 @@ public class AITest : MonoBehaviour
     {
         game = new Game();
         game.field = new Field();
-        //Restart();
 
     }
 
+    public void PauseAndStart()
+    {
+        pause = !pause;
+    }
+
+
+
+    public void TestFieldFunc()
+    {
+        game.field.UpdateTop();
+        int bump = game.field.Bumpiness();
+        int maxBump = game.field.MaxBump();
+        int holes = game.field.CountHole();
+        int contSurface = game.field.ContinuousSurface();
+        int score = game.field.GetScore();
+        string s = "";
+
+        s += "综合评分：" + score + "/1000";
+        s += String.Format("\n地形起伏程度{0}\n最大地形起伏程度{3}\n孔洞数量{1}\n连续地表{2}", bump, holes,contSurface,maxBump);
+
+        for(int i = 0;i< nodes.Count; i++)
+        {
+            nodes[i].score = game.field.GetScore(nodes[i].mino);
+        }
+        List<SearchNode> SortedList = nodes.OrderByDescending(o => o.score).ToList();
+
+        nodes = SortedList;
+        txtScore.text = s;
+    }
 
 
     public void LandPointTest()
     {
         nodesIndex = 0;
-        nodes = PathSearch.GetLandPoints(game.field, new Mino(7, 4, 19, 0));
+        nodes = PathSearch.GetLandPoints(game.field, new Mino(1, 4, 19, 0));
         foreach (SearchNode sn in nodes)
         {
             Debug.Log(sn.mino);
         }
-        txtNodeIndex.text = String.Format("落点({0}/{1})",nodesIndex,nodes.Count);
+        txtNodeIndex.text = String.Format("落点({0}/{1})",nodesIndex+1,nodes.Count);
     }
 
     public void ShowLandPoint()
     {
         DestroyAllChild(MinoParent);
-        if (nodesIndex < nodes.Count)
+        if (nodesIndex < 5)
         {
 
             ShowMino(nodes[nodesIndex].mino);
+            txtNodeIndex.text = String.Format("落点({0}/{1})\n{2}\n评分：{3}", nodesIndex+1, nodes.Count, nodes[nodesIndex].mino.ToString(),nodes[nodesIndex].score);
             nodesIndex++;
         }
         else
         {
             nodesIndex = 0;
         }
-        txtNodeIndex.text = String.Format("落点({0}/{1})", nodesIndex, nodes.Count);
     }
 
     public void Restart()
@@ -218,7 +273,7 @@ public class AITest : MonoBehaviour
             {
                 mouseDown = false;
 
-                Debug.LogFormat("({0},{1})", x, y);
+                //Debug.LogFormat("({0},{1})", x, y);
             }
             if (mouseDown)
             {
@@ -228,14 +283,25 @@ public class AITest : MonoBehaviour
                     UpdateFieldDisplay();
                 }
             }
+            float time = GetCurrentTime();
+            if (!pause)
+            {
+                if (time - aiTimer > 0.05f)
+                {
+                    aiTimer = time;
+                    PutMino();
+
+                    txtNodeIndex.text = game.statLine.ToString();
+                }
+            }
+
         }
+
     }
-
-
-
 
     void FixedUpdate()
     {
-
+        
     }
+
 }

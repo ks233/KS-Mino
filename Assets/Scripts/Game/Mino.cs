@@ -73,8 +73,30 @@ public class Mino
         SetArray(id, rotation);
     }
 
-
-
+    //反向但是重叠的方块，比如向上的S块和向下并且Y+1的S块
+    public Mino OppositeMino()
+    {
+        if(id == MinoID.S || id == MinoID.Z)
+        {
+            switch (rotation)
+            {
+                case 0: return new Mino(GetIdInt(), GetPosition().x, GetPosition().y + 1, 2);
+                case 2: return new Mino(GetIdInt(), GetPosition().x, GetPosition().y - 1, 0);
+                case 1: return new Mino(GetIdInt(), GetPosition().x+1, GetPosition().y, 3);
+                case 3: return new Mino(GetIdInt(), GetPosition().x-1, GetPosition().y, 1);
+            }
+        }else if(id == MinoID.I)
+        {
+            switch (rotation)
+            {
+                case 0: return new Mino(GetIdInt(), GetPosition().x + 1, GetPosition().y, 2);
+                case 2: return new Mino(GetIdInt(), GetPosition().x - 1, GetPosition().y, 0);
+                case 1: return new Mino(GetIdInt(), GetPosition().x, GetPosition().y - 1, 3);
+                case 3: return new Mino(GetIdInt(), GetPosition().x, GetPosition().y + 1, 1);
+            }
+        }
+        return this;
+    }
     public int GetRotationId()
     {
         return rotation;

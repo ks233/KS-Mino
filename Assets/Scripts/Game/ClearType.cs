@@ -5,12 +5,15 @@ using UnityEngine;
 [Serializable]
 public class ClearType
 {
+    public int minoId;
     public int lines;
-    public int combo;
-    public bool wasB2b;
     public bool tSpin;
-    public int tSpinType;//Ä¬ÈÏ-1£¬0mini 1single 2double 3triple
+    public int tSpinType;//0mini 1single 2double 3triple
     public bool pc;
+    public bool wasB2b;
+    public int combo;
+
+
     private int[] comboList = { 0, 0, 1, 1, 1, 2, 2, 3, 3, 4, 4, 4, 5 };
     private const int COMBO_LIST_LEN = 12;
     private int[] clearList = { 0, 0, 1, 2, 4 };
@@ -18,14 +21,15 @@ public class ClearType
     private int[] tspinList = { 0, 2, 4, 6 };//mini single double triple
 
 
-    public ClearType(int clearLines, int clearCombo, bool isB2b, bool isTSpin, int tType, bool isPc)
+    public ClearType(int minoId,int clearLines, bool isTSpin, int tType,  bool isPc,int clearCombo, bool isB2b)
     {
+        this.minoId = minoId;
         lines = clearLines;
+        tSpin = isTSpin;
+        tSpinType = tType;
+        pc = isPc;
         combo = clearCombo;
         wasB2b = isB2b;
-        tSpinType = tType;
-        tSpin = isTSpin;
-        pc = isPc;
     }
 
     public ClearType()
@@ -108,7 +112,6 @@ public class ClearType
         {
             msg += "\nPerfect Clear";
         }
-        Debug.LogFormat("line={0}", lines);
 
         return msg;
     }

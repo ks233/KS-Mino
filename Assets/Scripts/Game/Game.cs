@@ -40,8 +40,21 @@ public class Game
     private bool isHeld;
     private ScoreBoard scoreBoard;
 
+    public const char OP_LEFT = 'l';
+    public const char OP_RIGHT = 'r';
+    public const char OP_DOWN = 'd';
+    public const char OP_CW = 'c';
+    public const char OP_CCW = 'z';
+    public const char OP_CW_K = 'C';
+    public const char OP_CCW_K = 'C';
 
 
+
+
+    private string operation;
+
+
+    
     public Game()
     {
 
@@ -218,6 +231,25 @@ public class Game
 
     }
 
+    public static Vector2Int WallKickOffset_I(Field field, Mino mino, int A, int B, Vector2Int coordinate,out bool iSpin)//A和B都是rotationId
+    {
+        for (int i = 0; i < 5; i++)
+        {
+
+            if (field.IsValid(mino, B, coordinate + OFFSET_I[i, A] - OFFSET_I[i, B]))
+            {
+                if (i == 0)
+                    iSpin = false;
+                else
+                    iSpin = true;
+                return OFFSET_I[i, A] - OFFSET_I[i, B];
+            }
+        }
+        iSpin = false;
+        return new Vector2Int(0, 0);
+
+    }
+
 
 
     public Mino GetActiveMino()
@@ -225,98 +257,6 @@ public class Game
         return activeMino;
     }
 
-    public int CCWRotate()//逆时针旋转
-    {
-        int size = activeMino.GetSize();
-        int newRotationId = (activeMino.GetRotationId() + 3) % 4;
-
-        if (size == 3)
-        {
-            if (field.IsValid(activeMino, newRotationId, activeMino.GetPosition()))//如果可以直接转进去
-            {
-                activeMino.CCWRotate();
-                return 0;
-            }
-            else//如果不能就做踢墙检定
-            {
-                Vector2Int o = WallKickOffset(activeMino, activeMino.GetRotationId(), newRotationId, activeMino.GetPosition());
-                if (o != new Vector2Int(0, 0))
-                {
-                    activeMino.CCWRotate();
-                    activeMino.Move(o);
-                    field.kicked = true;
-                    return 0;
-                }
-            }
-        }
-        else if (size == 5)
-        {
-
-            Vector2Int o = WallKickOffset(activeMino, activeMino.GetRotationId(), newRotationId, activeMino.GetPosition());
-            if (o != new Vector2Int(0, 0))
-            {
-                activeMino.CCWRotate();
-                activeMino.Move(o);
-                return 0;
-            }
-
-
-        }
-        return -1;
-
-    }
-
-    public int CWRotate()//逆时针旋转
-    {
-        int size = activeMino.GetSize();
-        int newRotationId = (activeMino.GetRotationId() + 1) % 4;
-        if (size == 3)
-        {
-            if (field.IsValid(activeMino, newRotationId, activeMino.GetPosition()))
-            {
-                activeMino.CWRotate();
-                return 0;
-            }
-            else
-            {
-                Vector2Int o = WallKickOffset(activeMino, activeMino.GetRotationId(), newRotationId, activeMino.GetPosition());
-                if (o != new Vector2Int(0, 0))
-                {
-                    activeMino.CWRotate();
-                    activeMino.Move(o);
-                    field.kicked = true;
-
-                    return 0;
-                }
-            }
-        }
-        else if (size == 5)
-        {
-
-            Vector2Int o = WallKickOffset(activeMino, activeMino.GetRotationId(), newRotationId, activeMino.GetPosition());
-            if (o != new Vector2Int(0, 0))
-            {
-                activeMino.CWRotate();
-                activeMino.Move(o);
-
-                return 0;
-            }
-        }
-
-        return -1;
-
-    }
-    public int Move(int x)
-    {
-        Vector2Int newPosition = activeMino.GetPosition();
-        newPosition.x += x;
-        if (field.IsValid(activeMino, activeMino.GetRotationId(), newPosition))
-        {
-            activeMino.Move(x);
-            return 0;
-        }
-        return -1;
-    }
 
 
     List<Vector2Int> GetAllCoordinates()//mino四个格子的坐标
@@ -354,36 +294,31 @@ public class Game
 
     private void CheckClearType()
     {
-
-        bool tSpin = false;
-        int tSpinType = 0;
+        int minoId = activeMino.GetIdInt();
         int lines = field.LinesCanClear(activeMino);
 
-        clearType = new ClearType
-        {
-            combo = combo,
-            wasB2b = wasB2B,
-            //此时方块的位置和旋转都已经固定，开始消行性质检定
-            lines = lines,
-            pc = field.IsAllClear(lines)
-        };
+        bool tSpin = false;
+        bool spin = IsWallKick(operation);
+        int tSpinType = 0;//0mini 1single 2double 3triple
+        bool pc = field.IsAllClear(lines);
+        //bool wasB2b;
+        //int combo;
+
 
         if (activeMino.id == Mino.MinoID.T)//tspin判定
         {
-            bool c, f, k;
+            bool c, f;
             c = field.HasThreeCorners(activeMino);
             f = field.HasTwoFeets(activeMino);
-            k = field.kicked;
             if (lines == 1)
             {
-                bool cannotGoUp = !field.IsValid(activeMino, new Vector2Int(activeMino.GetPosition().x, activeMino.GetPosition().y + 1));
                 //Debug.Log(cannotGoUp);
-                if (c && f && cannotGoUp)//t-spin single
+                if (c && f)//t-spin single
                 {
                     tSpin = true;
                     tSpinType = 1;
                 }
-                else if ((c && !f && cannotGoUp) || (c && !f && k))//t-spin mini
+                else if (c && !f && spin)//t-spin mini
                 {
                     tSpin = true;
                     tSpinType = 0;
@@ -405,12 +340,9 @@ public class Game
         {
             clearType.tSpin = false;
         }
-        clearType.tSpin = tSpin;
-        clearType.tSpinType = tSpinType;
+        clearType = new ClearType(minoId, lines, tSpin, tSpinType, pc, combo, wasB2B);
 
         wasB2B = clearType.GetIsB2b();
-
-
         statAttack += clearType.GetAttack();
 
     }
@@ -439,11 +371,187 @@ public class Game
         }
         isHeld = false;
         statPiece++;
+        //bool isWallKick = IsWallKick(operation);
+        
         AfterLock();
         ct = clearType;
+        operation = "";
         return line;
     }
 
+
+    public void SetActiveMino(Mino mino)
+    {
+        activeMino = mino;
+    }
+
+    public static bool IsWallKick(string op)
+    {
+        Stack<char> ops = new Stack<char>();
+        string opList       = "lrzcZC";
+        string revOpList    = "rlczCZ";
+        bool firstPush = true;
+        foreach (char c in op)
+        {
+            if (firstPush)//第一个入栈
+            {
+                ops.Push(c);
+                firstPush = false;
+                continue;
+            }
+
+
+            if (c == 'd')
+            {
+                ops.Push(c);
+            }
+            else
+            {
+                char peek = ops.Peek();//判断当前操作符是否与栈顶抵消
+                for (int i = 0;i<opList.Length;i++)
+                {
+                    if(c == opList[i])
+                    {
+                        if(peek == revOpList[i])
+                        {
+                            ops.Pop();
+                            break;
+                        }
+                        else
+                        {
+                            ops.Push(c);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        if (ops.Count > 0)//保险起见。。
+        {
+            if (ops.Peek() == 'C' || ops.Peek() == 'Z') return true;
+        }
+        return false;
+    }
+
+    public int CCWRotate()//逆时针旋转
+    {
+        int size = activeMino.GetSize();
+        int newRotationId = (activeMino.GetRotationId() + 3) % 4;
+
+        if (size == 3)
+        {
+            if (field.IsValid(activeMino, newRotationId, activeMino.GetPosition()))//如果可以直接转进去
+            {
+
+                operation += "z";
+                activeMino.CCWRotate();
+                return 0;
+            }
+            else//如果不能就做踢墙检定
+            {
+                Vector2Int o = WallKickOffset(activeMino, activeMino.GetRotationId(), newRotationId, activeMino.GetPosition());
+                if (o != new Vector2Int(0, 0))
+                {
+                    activeMino.CCWRotate();
+                    activeMino.Move(o);
+
+                    operation += "Z";
+                    return 0;
+                }
+            }
+        }
+        else if (size == 5)
+        {
+
+            bool iSpin = true;
+            Vector2Int o = WallKickOffset_I(field, activeMino, activeMino.GetRotationId(), newRotationId, activeMino.GetPosition(), out iSpin);
+            if (o != new Vector2Int(0, 0))
+            {
+                activeMino.CCWRotate();
+                activeMino.Move(o);
+                if (iSpin)
+                {
+                    operation += "Z";
+                }
+                else
+                {
+                    operation += "z";
+                }
+                return 0;
+            }
+
+
+        }
+        return -1;
+
+    }
+
+    public int CWRotate()//逆时针旋转
+    {
+        int size = activeMino.GetSize();
+        int newRotationId = (activeMino.GetRotationId() + 1) % 4;
+        if (size == 3)
+        {
+            if (field.IsValid(activeMino, newRotationId, activeMino.GetPosition()))
+            {
+                activeMino.CWRotate();
+                operation += "c";
+                return 0;
+            }
+            else
+            {
+                Vector2Int o = WallKickOffset(activeMino, activeMino.GetRotationId(), newRotationId, activeMino.GetPosition());
+                if (o != new Vector2Int(0, 0))
+                {
+                    activeMino.CWRotate();
+                    activeMino.Move(o);
+                    operation += "C";
+                    return 0;
+                }
+            }
+        }
+        else if (size == 5)
+        {
+
+            bool iSpin = true;
+            Vector2Int o = WallKickOffset_I(field,activeMino, activeMino.GetRotationId(), newRotationId, activeMino.GetPosition(),out iSpin);
+            if (o != new Vector2Int(0, 0))
+            {
+                activeMino.CWRotate();
+                activeMino.Move(o);
+                if (iSpin)
+                {
+                    operation += "C";
+                }
+                else
+                {
+                    operation += "c";
+                }
+                return 0;
+            }
+        }
+
+        return -1;
+
+    }
+    public int Move(int x)
+    {
+        Vector2Int newPosition = activeMino.GetPosition();
+        newPosition.x += x;
+        if (field.IsValid(activeMino, activeMino.GetRotationId(), newPosition))
+        {
+            activeMino.Move(x);
+            if (x == 1)
+            {
+                operation += "r";
+            }else if (x == -1)
+            {
+                operation += "l";
+            }
+            return 0;
+        }
+        return -1;
+    }
 
     public int Fall()
     {
@@ -453,7 +561,7 @@ public class Game
         if (field.IsValid(activeMino, activeMino.GetRotationId(), newPosition))
         {
             activeMino.Fall();
-
+            operation += "d";
             return 0;
         }
         else
@@ -463,13 +571,14 @@ public class Game
     }
 
 
-    public void Harddrop(out int hdCells)
+    public void Drop(out int hdCells)
     {
         hdCells = 0;//硬降下降的格数，用于游戏计分（每格+2分）
         int y = activeMino.position.y;
         int landHeight = field.LandHeight(activeMino);
         activeMino.position.y = landHeight;
         hdCells = y - landHeight;
+        if (hdCells > 0) operation += "D";
         
 
     }

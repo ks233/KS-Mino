@@ -71,6 +71,8 @@ public class NextManager
     public int Dequeue()
     {
 
+        return Random.Range(1, 8);
+
         if (nextQueue.Count <= 7 && !useCustomNext) UpdateNext();
         if (nextQueue.Count == 0) return 0;
         return nextQueue.Dequeue();

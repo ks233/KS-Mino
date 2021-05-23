@@ -27,6 +27,7 @@ public class PathSearch
             {
                 bfs.Enqueue(moveLeft);
                 visited.Add(moveLeft);
+
             }
             //
             if (node.RotateCCW(field, out rotateCCW) && !visited.Contains(rotateCCW))
@@ -45,7 +46,6 @@ public class PathSearch
             {
                 if(!visited.Contains(moveDown))
                 {
-
                     bfs.Enqueue(moveDown);
                     visited.Add(moveDown);
                 }
@@ -55,7 +55,15 @@ public class PathSearch
                 result.Add(moveDown);
             }
         }
-        return result;
+        List<SearchNode> filteredResult = new List<SearchNode>();//ËÑË÷½á¹û
+        foreach(SearchNode sn in result)
+        {
+            if (!filteredResult.Contains(sn.OppositeMinoNode()) && !filteredResult.Contains(sn))
+            {
+                filteredResult.Add(sn);
+            }
+        }
+        return filteredResult;
     }
 }
 
@@ -64,6 +72,7 @@ public class SearchNode
     // Start is called before the first frame update
     public Mino mino;
     public int mark = 0;
+    public int score = 0;
     public SearchNode(Mino m) => mino = m;
     public override bool Equals(object obj)
     {
@@ -75,6 +84,10 @@ public class SearchNode
         return base.Equals(obj);
     }
 
+    public SearchNode OppositeMinoNode()
+    {
+        return new SearchNode(mino.OppositeMino());
+    }
 
     public bool MoveRight(Field field,out SearchNode sn)
     {
@@ -144,7 +157,6 @@ public class SearchNode
                 {
                     tmp.CWRotate();
                     tmp.Move(o);
-                    field.kicked = true;
                     ok = true;
                 }
                 else
@@ -195,7 +207,6 @@ public class SearchNode
                 {
                     tmp.CCWRotate();
                     tmp.Move(o);
-                    field.kicked = true;
                     ok = true;
                 }
                 else
