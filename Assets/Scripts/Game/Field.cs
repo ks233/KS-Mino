@@ -14,6 +14,15 @@ public class Field
 
     public int count;
 
+    public Field Clone()
+    {
+        Field f = (Field)MemberwiseClone();
+        f.array = array.Clone() as int[,];
+        f.top = top.Clone() as int[];
+        return f;
+    }
+
+
     public void Count()
     {
         count = 0;
@@ -25,6 +34,26 @@ public class Field
             }
         }
     }
+    public int MaxTop()
+    {
+        int max = 0;
+        for(int i = 0; i < 10; i++)
+        {
+            max = Math.Max(max, top[i]);
+        }
+        return max;
+    }
+
+    public int MaxDepth()
+    {
+        int depth = Math.Max(0, top[1] - top[0]);
+        for (int i = 1; i < 9; i++)
+        {
+            depth = Math.Max(depth, Math.Min(top[i - 1] - top[i], top[i] - top[i + 1]));
+        }
+        return depth;
+    }
+
 
     public int GetScore()
     {
@@ -32,14 +61,21 @@ public class Field
         UpdateTop();
         Count();
         int bump = Bumpiness();
+        int maxTop = MaxTop();
         int maxBump = MaxBump();
-        int holes = CountHole();
+        int holes = CountHole(out int holeLine);
         int contSurface = ContinuousSurface();
         int blockAboveHole = BlockAboveHole();
+        int maxDepth = MaxDepth();
+        int aggHeight = 0;
+        foreach(int i in top)
+        {
+            aggHeight += i;
+        }
 
 
-        int score = 1000;
-
+        int score = 0;
+        /*
         if (bump > 6)
         {
             score -= bump * 40;
@@ -51,34 +87,38 @@ public class Field
         }
         else
         {
-            //score -= bump * 10;
+            score -= bump * 10;
         }
+        */
+        score = (-100 * holes
+            - 40 * bump
+            - 150 * maxTop
+            - 50 * blockAboveHole
+            - 30 * aggHeight
+            - 800 * holeLine
+            - 150 * contSurface
+            - 160 * maxDepth); 
 
-        score -= maxBump * 30;
+        //score -= bump * 350+maxBump*500;
 
 
 
-        score -= (contSurface) * 40;
-        score -= holes * 300;
-
+        //score -= (contSurface) * 50;
+        //score -= holes * 3000;
+        /*
         if (count > 120)
         {
             score -= (count - 120) * 50;
         }
-
-        score -= blockAboveHole * 30;
-        if (maxBump == 0 && bump == 0 && (contSurface == 2 || contSurface == 3))
-        {
-            score = 900;
-        }
+        */
+        //score -= blockAboveHole * 30;
         return score;
 
     }
 
     public int GetScore(Mino mino)
     {
-        Field f = new Field();
-        f.array = array.Clone() as int[,];
+        Field f = Clone();
         f.LockMino(mino);
         if (f.LinesCanClear(mino) > 0)
         {
@@ -181,6 +221,7 @@ public class Field
 
     public int MaxBump(int a, int b)
     {
+        if (a >= b) return 0;
         int max = 0;
         for (int i = a; i <= b - 1; i++)
         {
@@ -195,15 +236,26 @@ public class Field
     }
 
 
-    public int CountHole()
+    public int CountHole(out int holeLine)
     {
         int hole = 0;
+        int[] hasHole = new int[20];
+        Array.Clear(hasHole,0,20);
+        holeLine = 0;
         for (int x = 0; x < 10; x++)
         {
             for(int y = top[x]-1; y >= 0; y--)
             {
-                if (array[x,y] == 0) hole++;
+                if (array[x, y] == 0) 
+                { 
+                    hole++;
+                    hasHole[y]++;
+                }
             }
+        }
+        for (int y = 0; y < 20; y++)
+        {
+            if (hasHole[y] > 0) holeLine++;
         }
         return hole;
     }

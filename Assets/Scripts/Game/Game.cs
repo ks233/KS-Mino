@@ -35,7 +35,7 @@ public class Game
     public ClearType clearType = new ClearType();
     private bool wasB2B = false;
     private int combo = -1;
-    private bool gameover = false;
+    public bool gameover = false;
     private int hold = 0;
     private bool isHeld;
     private ScoreBoard scoreBoard;
@@ -291,6 +291,59 @@ public class Game
     }
 
 
+    public static ClearType CheckClearType(Field field,Mino mino,string op,int combo,bool wasB2B)
+    {
+        ClearType clearType;
+        Field fClone = field.Clone();
+
+        fClone.LockMino(mino);
+
+        int minoId = mino.GetIdInt();
+        int lines = fClone.LinesCanClear(mino);
+
+        bool tSpin = false;
+        int tSpinType = 0;//0mini 1single 2double 3triple
+        bool spin = IsWallKick(op);
+        bool pc = fClone.IsAllClear(lines);
+        //bool wasB2b;
+        //int combo;
+
+
+        if (mino.id == Mino.MinoID.T)//tspin判定
+        {
+            bool c, f;
+            c = field.HasThreeCorners(mino);
+            f = field.HasTwoFeets(mino);
+            if (lines == 1)
+            {
+                //Debug.Log(cannotGoUp);
+                if (c && f)//t-spin single
+                {
+                    tSpin = true;
+                    tSpinType = 1;
+                }
+                else if (c && !f && spin)//t-spin mini
+                {
+                    tSpin = true;
+                    tSpinType = 0;
+
+                }
+            }
+            else if (lines == 2 && (c||spin))//t-spin double
+            {
+                tSpin = true;
+                tSpinType = 2;
+            }
+            else if (lines == 3)
+            {
+                tSpin = true;
+                tSpinType = 3;
+            }
+        }
+        clearType = new ClearType(minoId, lines, tSpin, tSpinType, pc, combo, wasB2B);
+        return clearType;
+
+    }
 
     private void CheckClearType()
     {
@@ -325,7 +378,7 @@ public class Game
 
                 }
             }
-            else if (lines == 2 && c)//t-spin double
+            else if (lines == 2 && (c||spin))//t-spin double
             {
                 tSpin = true;
                 tSpinType = 2;
@@ -335,10 +388,6 @@ public class Game
                 tSpin = true;
                 tSpinType = 3;
             }
-        }
-        else
-        {
-            clearType.tSpin = false;
         }
         clearType = new ClearType(minoId, lines, tSpin, tSpinType, pc, combo, wasB2B);
 
@@ -382,7 +431,15 @@ public class Game
 
     public void SetActiveMino(Mino mino)
     {
-        activeMino = mino;
+        if (field.IsValid(mino))
+        {
+
+            activeMino = mino;
+        }
+        else
+        {
+            GameOver();
+        }
     }
 
     public static bool IsWallKick(string op)

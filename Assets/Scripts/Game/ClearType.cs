@@ -48,7 +48,49 @@ public class ClearType
         return (ClearType)this.MemberwiseClone();
     }
 
-    public float GetScore(int level) {
+
+
+
+    public int GetEvalScore()//AI评估用分数
+    {
+        if (lines == 0) return 0;
+        return lines * 76;
+        int score = 0;
+        bool isB2b = GetIsB2b();
+        if (tSpin)
+        {
+            switch (tSpinType)
+            {
+                case 0: score += 400; break;
+                case 1: score += 600; break;
+                case 2: score += 1000; break;
+                case 3: score += 1200; break;
+            }
+        }
+        switch (lines)
+        {
+            //case 0: score += 0; break;
+            case 1: score += 500; break;
+            case 2: score += 600; break;
+            case 3: score += 800; break;
+            case 4: score += 1600; break;
+        }
+        if (wasB2b)
+        {
+            if (isB2b) score += 500;
+        }
+        if (combo > 0)
+        {
+            score += combo * 200;
+        }
+
+        
+        return score;
+    }
+
+
+    public float GetScore(int level) {//游戏分数
+        if (lines == 0) return 0;
 
         float score = 0;
         bool isB2b = (lines == 4 || tSpin);

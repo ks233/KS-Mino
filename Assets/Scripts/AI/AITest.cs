@@ -41,6 +41,8 @@ public class AITest : MonoBehaviour
     public Text txtNodeIndex;
     public Text txtScore;
 
+    private List<SearchNode> landpoints;
+
 
     private bool pause = true;
     private float aiTimer;
@@ -117,23 +119,22 @@ public class AITest : MonoBehaviour
     public void PutMino()
     {
 
-        List<SearchNode> landpoints = PathSearch.GetLandPoints(game.field, new Mino(game.GetActiveMinoId(), 4, 19, 0));
-
+        landpoints = PathSearch.GetLandPoints(game.field, new Mino(game.GetActiveMinoId(), 4, 19, 0));
+        /*
         for (int i = 0; i < landpoints.Count; i++)
         {
             landpoints[i].score = game.field.GetScore(landpoints[i].mino);
         }
         List<SearchNode> SortedList = landpoints.OrderByDescending(o => o.score).ToList();
-
+       
         landpoints = SortedList;
-
+        */
         game.SetActiveMino(landpoints[0].mino);
-        ClearType ct;
-        game.LockMino(out ct);
+        _ = game.LockMino(out _);
         game.NextMino();
 
-        UpdateFieldDisplay();
-        UpdateNextDisplay();
+        //UpdateFieldDisplay();
+        //UpdateNextDisplay();
     }
 
 
@@ -187,6 +188,9 @@ public class AITest : MonoBehaviour
 
     public void PauseAndStart()
     {
+        float t = GetCurrentTime();
+
+        txtNodeIndex.text = game.statLine.ToString() + "\n" + (GetCurrentTime()-t);
         pause = !pause;
     }
 
@@ -197,18 +201,19 @@ public class AITest : MonoBehaviour
         game.field.UpdateTop();
         int bump = game.field.Bumpiness();
         int maxBump = game.field.MaxBump();
-        int holes = game.field.CountHole();
+        int holes = game.field.CountHole(out int holeLine);
         int contSurface = game.field.ContinuousSurface();
         int score = game.field.GetScore();
         string s = "";
 
         s += "综合评分：" + score + "/1000";
         s += String.Format("\n地形起伏程度{0}\n最大地形起伏程度{3}\n孔洞数量{1}\n连续地表{2}", bump, holes,contSurface,maxBump);
-
+        /*
         for(int i = 0;i< nodes.Count; i++)
         {
             nodes[i].score = game.field.GetScore(nodes[i].mino);
         }
+        */
         List<SearchNode> SortedList = nodes.OrderByDescending(o => o.score).ToList();
 
         nodes = SortedList;
@@ -284,17 +289,20 @@ public class AITest : MonoBehaviour
                 }
             }
             float time = GetCurrentTime();
-            if (!pause)
+            
+            if (!pause && !game.gameover)
             {
-                if (time - aiTimer > 0.05f)
+                if (time - aiTimer > 0.2f)
                 {
+
                     aiTimer = time;
                     PutMino();
+                    UpdateFieldDisplay();
 
                     txtNodeIndex.text = game.statLine.ToString();
                 }
             }
-
+            
         }
 
     }

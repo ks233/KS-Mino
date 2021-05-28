@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class PathSearch
@@ -9,7 +10,7 @@ public class PathSearch
         Queue<SearchNode> bfs = new Queue<SearchNode>();//广搜队列
         List<SearchNode> visited = new List<SearchNode>();//已经访问过的
         List<SearchNode> result = new List<SearchNode>();//搜索结果
-        bfs.Enqueue(new SearchNode(mino));
+        bfs.Enqueue(new SearchNode(mino,""));
         while (bfs.Count > 0)
         {
             SearchNode node = bfs.Dequeue();
@@ -56,6 +57,7 @@ public class PathSearch
             }
         }
         List<SearchNode> filteredResult = new List<SearchNode>();//搜索结果
+        
         foreach(SearchNode sn in result)
         {
             if (!filteredResult.Contains(sn.OppositeMinoNode()) && !filteredResult.Contains(sn))
@@ -63,17 +65,45 @@ public class PathSearch
                 filteredResult.Add(sn);
             }
         }
-        return filteredResult;
+        for(int i = 0; i < filteredResult.Count; i++)
+        {
+            filteredResult[i].SetClearType(field);
+            filteredResult[i].Eval(field);
+        }
+        List<SearchNode> sortedList = filteredResult.OrderByDescending(o => o.score).ToList();
+        
+        return sortedList;
     }
+
 }
 
 public class SearchNode
 {
     // Start is called before the first frame update
     public Mino mino;
-    public int mark = 0;
+    public ClearType clearType;
     public int score = 0;
-    public SearchNode(Mino m) => mino = m;
+    public string op = "";
+
+    public void SetClearType(Field field)
+    {
+        clearType = Game.CheckClearType(field, mino, op, 0, false);
+        Debug.Log(clearType);
+    }
+
+
+    public void Eval(Field field)
+    {
+        Debug.Log(clearType.lines);
+        score = field.GetScore(mino) + (clearType.lines == 4 ? 100000:0);
+
+    }
+
+    public SearchNode(Mino m, string op)
+    {
+        mino = m;
+        this.op = op;
+    }
     public override bool Equals(object obj)
     {
         if(obj.GetType() == this.GetType())
@@ -86,7 +116,7 @@ public class SearchNode
 
     public SearchNode OppositeMinoNode()
     {
-        return new SearchNode(mino.OppositeMino());
+        return new SearchNode(mino.OppositeMino(),"");//
     }
 
     public bool MoveRight(Field field,out SearchNode sn)
@@ -100,7 +130,7 @@ public class SearchNode
             tmp.Move(1);
             ok = true;
         }        
-        sn = new SearchNode(tmp);
+        sn = new SearchNode(tmp,op+"r");
         return ok;
     }
     public bool MoveLeft(Field field, out SearchNode sn)
@@ -114,7 +144,7 @@ public class SearchNode
             tmp.Move(-1);
             ok = true;
         }
-        sn = new SearchNode(tmp);
+        sn = new SearchNode(tmp, op + "l");
         return ok;
     }
 
@@ -130,7 +160,7 @@ public class SearchNode
             tmp.Fall();
             ok = true;
         }
-        sn = new SearchNode(tmp);
+        sn = new SearchNode(tmp, op + "d");
         return ok;
     }
 
@@ -141,6 +171,7 @@ public class SearchNode
         bool ok = false;
         Mino tmp = mino.Clone();
         int size = tmp.GetSize();
+        string k = "c";//操作符，踢墙则为大写C
         int newRotationId = (tmp.GetRotationId() + 1) % 4;
 
         if (size == 3)
@@ -157,6 +188,7 @@ public class SearchNode
                 {
                     tmp.CWRotate();
                     tmp.Move(o);
+                    k = "C";
                     ok = true;
                 }
                 else
@@ -168,11 +200,15 @@ public class SearchNode
         else if (size == 5)
         {
 
-            Vector2Int o = Game.WallKickOffset(field,tmp, tmp.GetRotationId(), newRotationId, tmp.GetPosition());
+            Vector2Int o = Game.WallKickOffset_I(field,tmp, tmp.GetRotationId(), newRotationId, tmp.GetPosition(),out bool iSpin);
             if (o != new Vector2Int(0, 0))
             {
                 tmp.CWRotate();
                 tmp.Move(o);
+                if (iSpin)
+                {
+                    k = "C";
+                }
                 ok = true;
             }
             else
@@ -180,7 +216,7 @@ public class SearchNode
                 ok = false;
             }
         }
-        sn = new SearchNode(tmp);
+        sn = new SearchNode(tmp, op + k);
         return ok;
     }
 
@@ -192,6 +228,8 @@ public class SearchNode
         Mino tmp = mino.Clone();
         int size = tmp.GetSize();
         int newRotationId = (tmp.GetRotationId() + 3) % 4;
+        string k = "z";
+
 
         if (size == 3)
         {
@@ -207,6 +245,7 @@ public class SearchNode
                 {
                     tmp.CCWRotate();
                     tmp.Move(o);
+                    k = "Z";
                     ok = true;
                 }
                 else
@@ -217,12 +256,15 @@ public class SearchNode
         }
         else if (size == 5)
         {
-
-            Vector2Int o = Game.WallKickOffset(field, tmp, tmp.GetRotationId(), newRotationId, tmp.GetPosition());
+            Vector2Int o = Game.WallKickOffset_I(field, tmp, tmp.GetRotationId(), newRotationId, tmp.GetPosition(), out bool iSpin);
             if (o != new Vector2Int(0, 0))
             {
                 tmp.CCWRotate();
                 tmp.Move(o);
+                if (iSpin)
+                {
+                    k = "Z";
+                }
                 ok = true;
             }
             else
@@ -230,7 +272,7 @@ public class SearchNode
                 ok = false;
             }
         }
-        sn = new SearchNode(tmp);
+        sn = new SearchNode(tmp,op+k);
         return ok;
     }
 
