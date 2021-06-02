@@ -3,9 +3,152 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class PathSearch
+public class Search
 {
+
+    const int NUM_BEAMS = 5;
+    public static Mino SpawnMino(int minoId)
+    {
+        return new Mino(minoId, 4, 19, 0);
+    }
+
+
+    public static List<int> MaxScorePath(List<SearchNode> node)//输入已经构造好的beam search树，输出通往最大的叶子节点的路径
+    {
+        for (int i = 0; i < node.Count; i++)
+        {
+            node[i].path.Add(i);
+        }
+        Queue<SearchNode> bfs = new Queue<SearchNode>(node);
+        Stack<SearchNode> tmp = new Stack<SearchNode>();
+
+     
+
+        while (bfs.Count > 0)
+        {
+            SearchNode sn = bfs.Dequeue();
+            tmp.Push(sn);
+            for (int i = 0; i < sn.childCount; i++)
+            {
+                sn.child[i].path = sn.path;
+                sn.child[i].path.Add(i);
+                bfs.Enqueue(sn.child[i]);
+            }
+        }
+        List<SearchNode> leafNodes = new List<SearchNode>();
+        for(int i = 0; i < NUM_BEAMS; i++)
+        {
+            leafNodes.Add(tmp.Pop());
+        }
+        List<SearchNode> sortedList = leafNodes.OrderByDescending(o => o.score).ToList();
+        return sortedList[0].path;
+    }
+
+    public static List<SearchNode> OneNextTest(Field field, int minoId,int nextId)
+    {
+
+        //TODO:落点数量少于NUM_BEAMS时的情况处理
+
+
+        List<SearchNode> rootList = GetLandPoints(field.Clone(), SpawnMino(minoId)).Take(NUM_BEAMS).ToList();
+        for(int i = 0; i < NUM_BEAMS; i++)//对每个节点各求NUM_BEAM个子节点
+        {
+            rootList[i].child = GetLandPoints(field.Clone() + rootList[i].mino, SpawnMino(nextId)).Take(NUM_BEAMS).ToList();
+        }
+
+
+        //现在共有NUM_BEAM^2个子节点，要减少到NUM_BEAM个
+
+        int count = 0;
+        while(count<NUM_BEAMS)//从每个节点中筛选最高分
+        {
+            int maxIndex = 0;
+            int max = rootList[0].child[0].score; 
+            for (int i = 0; i < NUM_BEAMS; i++)//找最大节点方法类似归并排序
+            {
+                if (rootList[i].child[rootList[i].childCount].score > max)
+                {
+                    max = rootList[i].child[i].score;
+                    maxIndex = i;
+                }
+            }
+            rootList[maxIndex].childCount++;//
+            count++;
+        }
+        return rootList;
+    }
+
+
+    public static List<Mino> GetSolution(SearchNode root)
+    {
+        //Beam Search..
+
+
+
+        return new List<Mino>();
+    }
+
+
     public static List<SearchNode> GetLandPoints(Field field, Mino mino)
+    {
+        
+        if (field.CountHole(out _) == 0)
+        {
+            return GetLandPointsLite(field,mino);
+        }
+        else
+        {
+            return GetLandPointsKick(field,mino);
+        }
+    }
+
+
+        public static List<SearchNode> GetLandPointsLite(Field field, Mino mino)
+    {
+        List<SearchNode> result = new List<SearchNode>();//搜索结果
+
+        SearchNode spawnNode = new SearchNode(mino, "");
+        for (int rotation = 0; rotation < 4; rotation++)
+        {
+            SearchNode node = spawnNode;
+            for (int i = 0; i < rotation; i++)
+            {
+                node.RotateCW(field,out node);
+            }
+
+            SearchNode moveRight=node, moveLeft=node;
+            while (moveRight.MoveRight(field, out moveRight))
+            {
+                moveRight.HardDrop(field, out SearchNode hardDrop);
+                result.Add(hardDrop);
+            }
+            while (moveLeft.MoveLeft(field, out moveLeft))
+            {
+                moveLeft.HardDrop(field, out SearchNode hardDrop);
+                result.Add(hardDrop);
+            }
+        }
+
+        List<SearchNode> filteredResult = new List<SearchNode>();//搜索结果
+
+        foreach (SearchNode sn in result)
+        {
+            if (!filteredResult.Contains(sn.OppositeMinoNode()) && !filteredResult.Contains(sn))
+            {
+                filteredResult.Add(sn);
+            }
+        }
+        for (int i = 0; i < filteredResult.Count; i++)
+        {
+            filteredResult[i].clearType = Game.CheckClearType(field.Clone(), filteredResult[i].mino, filteredResult[i].op, 0, false);
+            filteredResult[i].Eval(field);
+        }
+        List<SearchNode> sortedList = filteredResult.OrderByDescending(o => o.score).ToList();
+
+        return sortedList;
+    }
+
+    public static List<SearchNode> GetLandPointsKick(Field field, Mino mino)
     {
         Queue<SearchNode> bfs = new Queue<SearchNode>();//广搜队列
         List<SearchNode> visited = new List<SearchNode>();//已经访问过的
@@ -67,7 +210,7 @@ public class PathSearch
         }
         for(int i = 0; i < filteredResult.Count; i++)
         {
-            filteredResult[i].SetClearType(field);
+            filteredResult[i].clearType = Game.CheckClearType(field.Clone(), filteredResult[i].mino, filteredResult[i].op, 0, false);
             filteredResult[i].Eval(field);
         }
         List<SearchNode> sortedList = filteredResult.OrderByDescending(o => o.score).ToList();
@@ -82,20 +225,31 @@ public class SearchNode
     // Start is called before the first frame update
     public Mino mino;
     public ClearType clearType;
+
+
+    public List<SearchNode> child = new List<SearchNode>();//下层子节点
+
+    public int childCount = 0;
+
+    public List<int> path = new List<int>();
+
     public int score = 0;
     public string op = "";
+    
 
-    public void SetClearType(Field field)
+
+
+
+    public SearchNode()
     {
-        clearType = Game.CheckClearType(field, mino, op, 0, false);
-        Debug.Log(clearType);
+
     }
 
 
     public void Eval(Field field)
     {
-        Debug.Log(clearType.lines);
-        score = field.GetScore(mino) + (clearType.lines == 4 ? 100000:0);
+        //Debug.Log(clearType.lines);
+        score = field.GetScore(mino) + (clearType.lines == 4 ? 20000:0);
 
     }
 
@@ -147,8 +301,6 @@ public class SearchNode
         sn = new SearchNode(tmp, op + "l");
         return ok;
     }
-
-
     public bool MoveDown(Field field, out SearchNode sn)
     {
         Vector2Int newPos = mino.position;
@@ -161,6 +313,24 @@ public class SearchNode
             ok = true;
         }
         sn = new SearchNode(tmp, op + "d");
+        return ok;
+    }
+
+    public bool HardDrop(Field field, out SearchNode sn)
+    {
+        Vector2Int newPos = mino.position;
+        Mino tmp = mino.Clone();
+        bool ok = false;
+        newPos.y--;
+        string hd = "";
+        while (field.IsValid(mino, newPos))
+        {
+            tmp.Fall();
+            hd += "d";
+            ok = true;
+            newPos.y--;
+        }
+        sn = new SearchNode(tmp, op + hd);
         return ok;
     }
 
@@ -219,7 +389,6 @@ public class SearchNode
         sn = new SearchNode(tmp, op + k);
         return ok;
     }
-
     public bool RotateCCW(Field field, out SearchNode sn)
     {
 

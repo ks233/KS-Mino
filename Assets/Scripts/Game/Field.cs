@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 [Serializable]
 public class Field
@@ -30,14 +31,14 @@ public class Field
         {
             for (int j = 0; j < 25; j++)
             {
-                if(array[i, j] != 0)count++;
+                if (array[i, j] != 0) count++;
             }
         }
     }
     public int MaxTop()
     {
         int max = 0;
-        for(int i = 0; i < 10; i++)
+        for (int i = 0; i < 10; i++)
         {
             max = Math.Max(max, top[i]);
         }
@@ -55,20 +56,69 @@ public class Field
     }
 
 
+    public static Field operator+(Field field,Mino mino)
+    {
+        field.LockMino(mino);
+        field.Clear(mino);
+        return field;
+    }
+
+    public int CanClearFour()
+    {
+        UpdateTop();
+        int minCol = 0;
+        int minTop = top[0];
+        for(int x = 0; x < 10; x++)
+        {
+            if (top[x] < minTop)
+            {
+                minCol = x;
+                minTop = top[x];
+            }
+        }
+        bool four = true;
+
+        for(int y = minTop; y < minTop + 4; y++)
+        {
+            for (int x = 0; x < 10; x++)
+            {
+                if (x == minCol) continue;
+                if (array[x, y] == 0)
+                {
+                    return 0;
+                }
+            }
+        }
+        
+        return 1;
+    }
+
+    public int SecondMinTop()
+    {
+        List<int> topList = top.ToList();
+        topList.Sort();
+        return topList[1];
+        
+    }
+
     public int GetScore()
     {
 
         UpdateTop();
         Count();
-        int bump = Bumpiness();
-        int maxTop = MaxTop();
-        int maxBump = MaxBump();
-        int holes = CountHole(out int holeLine);
-        int contSurface = ContinuousSurface();
-        int blockAboveHole = BlockAboveHole();
-        int maxDepth = MaxDepth();
-        int aggHeight = 0;
-        foreach(int i in top)
+        int bump = Bumpiness1(out int secondMaxBump);                 //起伏程度
+        int maxTop = MaxTop();                  //最高点
+        int secondMinTop = SecondMinTop();
+        int maxBump = MaxBump();                //最大起伏程度
+        int holes = CountHole(out int holeLine);//孔洞数量、带洞行行数
+        int contSurface = ContinuousSurface();  //没卵用
+        int blockAboveHole = BlockAboveHole();  //没卵用2号
+        int maxDepth = MaxDepth();              //没卵用3号
+        int aggHeight = 0;                      //总高度
+        int sz = SZ();                          //能否横放SZ
+        int deepWellCol = DeepWell(out int wellDepth);              //大于等于3格的深坑的数量
+        int canClearFour = CanClearFour();
+        foreach (int i in top)
         {
             aggHeight += i;
         }
@@ -90,14 +140,41 @@ public class Field
             score -= bump * 10;
         }
         */
-        score = (-100 * holes
-            - 40 * bump
-            - 150 * maxTop
-            - 50 * blockAboveHole
-            - 30 * aggHeight
-            - 800 * holeLine
-            - 150 * contSurface
-            - 160 * maxDepth); 
+
+        //MPH
+        /*
+        score = (-101 * holes//101
+            - 145 * bump//145
+            //- 100 * maxTop//100
+            //- (maxTop >= 17 ? 100000 : 0)
+            //- 33 * aggHeight//27
+            - 800 * holeLine//800
+            - 0 * contSurface//0
+            - 0 * maxDepth//0
+            - 8 * blockAboveHole//8
+            + 120 * sz//120
+            - 100 * wellDepth//160
+            );
+
+        */
+        //7Bag
+
+        score = (-500 * holes//101
+                - 120 * bump//145
+                - (secondMaxBump > 3 ? 800 : 0)
+                - 80 * (maxTop - secondMinTop)//100
+                                              //- (maxTop >= 17 ? 100000 : 0)
+                                              //- 27 * aggHeight//27
+                - 800 * holeLine//800
+                - 10 * contSurface//0
+                - 10 * blockAboveHole//8
+                + 120 * sz//120
+                - (deepWellCol > 1 ? 160 : 0) * wellDepth//160
+
+                + canClearFour * 4000
+                );
+     
+
 
         //score -= bump * 350+maxBump*500;
 
@@ -116,6 +193,32 @@ public class Field
 
     }
 
+    public override string ToString()
+    {
+        string s = "";
+        for(int x = 0; x < 10; x++)
+        {
+            for (int y = 0; y < 20; y++)
+            {
+                s += array[x, y].ToString();
+            }
+        }
+        return s;
+    }
+
+    public void SetFieldByString(string s)
+    {
+        if (s.Length < 200) return;
+        for (int x = 0; x < 10; x++)
+        {
+            for (int y = 0; y < 20; y++)
+            {
+                array[x, y] = (int)char.GetNumericValue(s[20 * x + y]);
+                
+            }
+        }
+    }
+
     public int GetScore(Mino mino)
     {
         Field f = Clone();
@@ -127,15 +230,59 @@ public class Field
         return f.GetScore();
     }
 
+    public int SZ()//判断SZ是否能平放
+    {
+        int s = 0, z = 0;
+        for (int i = 0; i < 10 - 2; i++)
+        {
+            if (top[i + 1] == top[i + 2] && top[i + 1] == top[i] - 1) z++;
+            if (top[i] == top[i + 1] && top[i + 1] == top[i + 2] - 1) s++;
+        }
+
+        int result = 0;
+        if (z > 0) result++;
+        if (s > 0) result++;
+        return result;
+    }
+
+    public int DeepWell(out int wellDepth)//深度大于等于3，只能用I填的坑
+    {
+        int well = 0;
+        wellDepth = 0;
+        if (top[1] - top[0] >= 3)
+        {
+            wellDepth += top[1] - top[0];
+            well++;
+        }
+
+
+        for (int i = 0; i < 10 - 2; i++)
+        {
+            if (top[i + 1] < top[i + 2] && top[i + 1] < top[i])
+            {
+                if (Math.Min(top[i + 2] - top[i + 1], top[i] - top[i + 1]) >= 3)
+                {
+                    wellDepth += Math.Min(top[i + 2] - top[i + 1], top[i] - top[i + 1]);
+                    well++;
+                }
+            }
+        }
+        if (top[8] - top[9] >= 3)
+        {
+            wellDepth += top[8] - top[9];
+            well++;
+        }
+        return well;
+    }
 
 
     public void UpdateTop(int col)
     {
-        for(int i = 22; i >= 0; i--)
+        for (int i = 22; i >= 0; i--)
         {
-            if(array[col,i] != 0)
+            if (array[col, i] != 0)
             {
-                top[col] = i+1;
+                top[col] = i + 1;
                 return;
             }
         }
@@ -165,13 +312,13 @@ public class Field
         }
     }
 
-    public int Bumpiness(int a,int b)
+    public int Bumpiness(int a, int b)
     {
         if (b <= a) return 0;
-        int bumpiness=0;
-        for (int i = a; i <= b-1; i++)
+        int bumpiness = 0;
+        for (int i = a; i <= b - 1; i++)
         {
-            bumpiness += Math.Abs(top[i]-top[i+1]);
+            bumpiness += Math.Abs(top[i] - top[i + 1]);
         }
         return bumpiness;
     }
@@ -179,18 +326,19 @@ public class Field
     public int LowestCol()
     {
         int col = 0;
-        for(int i = 0; i < 10; i++)
+        for (int i = 0; i < 10; i++)
         {
             if (top[i] < top[col]) col = i;
         }
         return col;
     }
 
-    /*
-    public int Bumpiness()
+    public int Bumpiness1(out int secondMaxBump)
     {
         int lowestCol = LowestCol();
         int bumpiness = 0;
+        List<int> bumpList = new List<int>();
+
         for (int i = 0; i < 9; i++)
         {
             if (i == lowestCol) continue;
@@ -198,25 +346,30 @@ public class Field
             {
                 if (lowestCol == 9) continue;
                 bumpiness += Math.Abs(top[i] - top[i + 2]);
+                bumpList.Add(Math.Abs(top[i] - top[i + 2]));
             }
             else
             {
                 bumpiness += Math.Abs(top[i] - top[i + 1]);
+                bumpList.Add(Math.Abs(top[i] - top[i + 1]));
             }
+        }
+
+        bumpList.Sort();
+        secondMaxBump = bumpList[7];
+        return bumpiness;
+    }
+
+    public int Bumpiness()
+    {
+        int bumpiness = 0;
+        for (int i = 0; i < 9; i++)
+        {
+            bumpiness += Math.Abs(top[i] - top[i + 1]);
+
         }
         return bumpiness;
     }
-    */
- public int Bumpiness()
- {
-     int bumpiness = 0;
-     for (int i = 0; i < 9; i++)
-     {
-         bumpiness += Math.Abs(top[i] - top[i + 1]);
-
-     }
-     return bumpiness;
- }
 
 
     public int MaxBump(int a, int b)
@@ -239,15 +392,15 @@ public class Field
     public int CountHole(out int holeLine)
     {
         int hole = 0;
-        int[] hasHole = new int[20];
-        Array.Clear(hasHole,0,20);
+        int[] hasHole = new int[40];
+        Array.Clear(hasHole, 0, 20);
         holeLine = 0;
         for (int x = 0; x < 10; x++)
         {
-            for(int y = top[x]-1; y >= 0; y--)
+            for (int y = top[x] - 1; y >= 0; y--)
             {
-                if (array[x, y] == 0) 
-                { 
+                if (array[x, y] == 0)
+                {
                     hole++;
                     hasHole[y]++;
                 }
@@ -265,27 +418,18 @@ public class Field
         int blockAboveHole = 0;
         for (int x = 0; x < 10; x++)
         {
-            for (int y = 0; y < top[x]; y++)
+            int depth = 0;
+            bool hole = false;
+            for (int y = top[x] - 1; y >= 0; y--)
             {
-                /*
-                if (array[x, y] != 0)
+                depth++;
+                if (array[x, y] == 0)
                 {
-                    t++;
-                }
-                else
-                {
-                    blockAboveHole += t;
-                    break;
-                }*/
-                if(array[x,y] == 0)
-                {
-                    for(int i = y+1; i < top[x]; i++)
-                    {
-                        blockAboveHole++;
-                    }
+                    hole = true;
                     break;
                 }
             }
+            if (hole == true) blockAboveHole += depth-1;
         }
         return blockAboveHole;
     }
@@ -341,7 +485,8 @@ public class Field
         tmpMino.SetPosition(centerPos);
 
         List<Vector2Int> l = GetAllCoordinates(tmpMino);
-        foreach(Vector2Int v in l) {
+        foreach (Vector2Int v in l)
+        {
             int i = v.x;
             int j = v.y;
             if (i > 9 || i < 0) return false;
@@ -489,9 +634,11 @@ public class Field
     }
 
 
-    public int LandHeight(Mino m) {
+    public int LandHeight(Mino m)
+    {
         Vector2Int pos = m.position;
-        while (IsValid(m,pos)) {
+        while (IsValid(m, pos))
+        {
             pos.y--;
         }
         return pos.y + 1;
@@ -504,7 +651,7 @@ public class Field
         {
             for (int j = 0; j < 40; j++)
             {
-                    array[i, j] = 0;
+                array[i, j] = 0;
             }
 
         }
@@ -518,7 +665,7 @@ public class Field
         {
             for (int j = n; j < 17; j++)
             {
-                if (array[i, j]!=0)
+                if (array[i, j] != 0)
                 {
                     //Debug.Log(String.Format("not pc because array[{0},{1}]={2}", i, j,array[i, j]));
                     return false;

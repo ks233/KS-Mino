@@ -406,6 +406,9 @@ public class Game
     public int LockMino(out ClearType ct)
     {
         int line = 0;
+
+        if (!field.IsValid(activeMino)) GameOver();
+
         field.LockMino(activeMino);
         if (field.LinesCanClear(activeMino) > 0)
         {
@@ -431,15 +434,7 @@ public class Game
 
     public void SetActiveMino(Mino mino)
     {
-        if (field.IsValid(mino))
-        {
-
-            activeMino = mino;
-        }
-        else
-        {
-            GameOver();
-        }
+        activeMino = mino;
     }
 
     public static bool IsWallKick(string op)

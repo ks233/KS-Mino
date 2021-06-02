@@ -29,7 +29,7 @@ public class AITest : MonoBehaviour
 
     public Game game;//仅用于显示
 
-
+    private bool showField = false;
 
 
     public int drawColor;
@@ -41,11 +41,15 @@ public class AITest : MonoBehaviour
     public Text txtNodeIndex;
     public Text txtScore;
 
+    public InputField inputFStr;
+
     private List<SearchNode> landpoints;
 
 
     private bool pause = true;
     private float aiTimer;
+    private List<Mino> buffer = new List<Mino>();
+
 
     private float GetCurrentTime()
     {
@@ -116,10 +120,21 @@ public class AITest : MonoBehaviour
         }
     }
 
+
+    private void PutMino(Mino mino)
+    {
+        
+        game.SetActiveMino(mino);
+        _ = game.LockMino(out _);
+        game.NextMino();
+        if (showField)
+            UpdateFieldDisplay();
+    }
+
     public void PutMino()
     {
 
-        landpoints = PathSearch.GetLandPoints(game.field, new Mino(game.GetActiveMinoId(), 4, 19, 0));
+        landpoints = Search.GetLandPoints(game.field, Search.SpawnMino(game.GetActiveMinoId()));
         /*
         for (int i = 0; i < landpoints.Count; i++)
         {
@@ -129,12 +144,30 @@ public class AITest : MonoBehaviour
        
         landpoints = SortedList;
         */
-        game.SetActiveMino(landpoints[0].mino);
+        if (landpoints.Count == 0) {
+            game.SetActiveMino(new Mino(game.GetActiveMinoId(), 4, 19, 0));
+        }
+        else
+        {
+            game.SetActiveMino(landpoints[0].mino);
+        }
         _ = game.LockMino(out _);
         game.NextMino();
-
-        //UpdateFieldDisplay();
+        if(showField)
+            UpdateFieldDisplay();
         //UpdateNextDisplay();
+    }
+
+    public void GetFieldString()
+    {
+        inputFStr.text = game.field.ToString();
+        Debug.Log(game.field.GetScore());
+    }
+
+    public void SetFieldString()
+    {
+        game.field.SetFieldByString(inputFStr.text);
+        UpdateFieldDisplay();
     }
 
 
@@ -183,7 +216,6 @@ public class AITest : MonoBehaviour
     {
         game = new Game();
         game.field = new Field();
-
     }
 
     public void PauseAndStart()
@@ -224,13 +256,50 @@ public class AITest : MonoBehaviour
     public void LandPointTest()
     {
         nodesIndex = 0;
-        nodes = PathSearch.GetLandPoints(game.field, new Mino(1, 4, 19, 0));
+        nodes = Search.GetLandPoints(game.field, new Mino(1, 4, 19, 0));
         foreach (SearchNode sn in nodes)
         {
             Debug.Log(sn.mino);
         }
         txtNodeIndex.text = String.Format("落点({0}/{1})",nodesIndex+1,nodes.Count);
     }
+
+
+    private void OneNextTest()
+    {
+        List<SearchNode> beamTree = Search.OneNextTest(game.field.Clone(), game.activeMino.GetIdInt(), game.next.nextQueue.Peek());//测试下两块为ST的组合
+        List<int> path = Search.MaxScorePath(beamTree);
+        DestroyAllChild(MinoParent);
+        PutMino(beamTree[path[0]].mino);
+        //buffer.Add(beamTree[path[0]].mino);
+        //buffer.Add(beamTree[path[0]].child[path[1]].mino);
+    }
+
+    public void DoSomething()//临时debug按钮对应的函数，功能不确定
+    {
+        /*
+        game.field.UpdateTop();
+        Debug.Log(game.field.BlockAboveHole());
+        showField = !showField;
+        */
+
+        if (buffer.Count == 0)
+        {
+            List<SearchNode> beamTree = Search.OneNextTest(game.field.Clone(), game.activeMino.GetIdInt(), game.next.nextQueue.Peek());//测试下两块为ST的组合
+            List<int> path = Search.MaxScorePath(beamTree);
+            DestroyAllChild(MinoParent);
+            buffer.Add(beamTree[path[0]].mino);
+            buffer.Add(beamTree[path[0]].child[path[1]].mino);
+        }
+        PutMino(buffer[0]);
+        buffer.RemoveAt(0);
+
+        UpdateFieldDisplay();
+        UpdateNextDisplay();
+    }
+
+
+
 
     public void ShowLandPoint()
     {
@@ -255,6 +324,11 @@ public class AITest : MonoBehaviour
         UpdateNextDisplay();
         UpdateFieldDisplay();
         UpdateActiveMinoDisplay();
+    }
+
+    public void UpdateDisplay()
+    {
+        UpdateFieldDisplay();
     }
 
 
@@ -289,27 +363,37 @@ public class AITest : MonoBehaviour
                 }
             }
             float time = GetCurrentTime();
-            
-            if (!pause && !game.gameover)
-            {
-                if (time - aiTimer > 0.2f)
-                {
 
-                    aiTimer = time;
-                    PutMino();
-                    UpdateFieldDisplay();
 
-                    txtNodeIndex.text = game.statLine.ToString();
-                }
-            }
-            
+
+            //UpdateFieldDisplay();
+            txtNodeIndex.text = game.statLine.ToString();
         }
 
     }
 
     void FixedUpdate()
     {
-        
+        float time = GetCurrentTime();
+        if (!pause && !game.gameover)
+        {
+            if (time - aiTimer > 0.3f)
+            {
+
+                aiTimer = time;
+                //for (int i = 0;i<5 && !game.gameover;i++)
+                {
+
+                    DoSomething();
+                    UpdateFieldDisplay();
+                    UpdateNextDisplay();
+
+                }
+
+                //UpdateFieldDisplay();
+                txtNodeIndex.text = game.statLine.ToString();
+            }
+        }
     }
 
 }
