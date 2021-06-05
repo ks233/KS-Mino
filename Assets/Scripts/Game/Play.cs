@@ -45,6 +45,9 @@ public class Play : MonoBehaviour
     public GameObject NextArea;
     public GameObject ActiveMinoParent;
 
+    public FieldUIDisplay fieldUI;
+    public ActiveMinoUIDisplay activeMinoUI;
+
     private int lastInput;
     private bool arrTrigger = false;
 
@@ -81,14 +84,18 @@ public class Play : MonoBehaviour
         int piece = game.statPiece;
         int atk = game.statAttack;
 
-        String s = String.Format("时间：{0:0.00}\n块数：{1}\n消行：{2}\n攻击：{3}\n", gameTime, piece, game.statLine, atk);
-        s += String.Format("PPS：{0:0.00}\nAPM：{1:0.00}\n", piece / gameTime, atk / gameTime * 60);
-
+        String s;// = String.Format("时间：{0:0.00}\n块数：{1}\n消行：{2}\n攻击：{3}\n", gameTime, piece, game.statLine, atk);
+        //s += String.Format("PPS：{0:0.00}\nAPM：{1:0.00}\n", piece / gameTime, atk / gameTime * 60);
+        s = String.Format("Pieces\n<size=32>{0} </size>{1:0.00}/SEC\n\nAttacks\n<size=32>{2} </size>{3:0.00}/Min\n\nTime\n<size=32>{4:0.00}</size>",
+            piece, piece / gameTime,atk,atk/gameTime*60,gameTime);
         TxtStats.text = s;
     }
 
     private void UpdateActiveMinoDisplay()
     {
+        activeMinoUI.UpdateActiveMino(game.field,game.activeMino);
+        /*
+
         DestroyAllChild(ActiveMinoParent);
         Mino tmpMino = game.GetActiveMino();
 
@@ -104,6 +111,7 @@ public class Play : MonoBehaviour
                 DisplayUtils.InstChild(MinoTiles[tmpMino.GetIdInt() - 1], new Vector3(v.x, v.y - ghostDist, 0), ActiveMinoParent, 1, 0.5f);
             }
         }
+        */
     }
 
 
@@ -151,6 +159,12 @@ public class Play : MonoBehaviour
 
     public void UpdateFieldDisplay()
     {
+
+        fieldUI.UpdateField(game.field,game.activeMino);
+
+        
+
+        /*
         DestroyAllChild(ParentField);
         int[,] field = game.GetFieldArray();
 
@@ -168,6 +182,7 @@ public class Play : MonoBehaviour
                     DisplayUtils.InstChild(MinoTiles[field[x, y] - 1], new Vector3(x, y, 0), ParentField);
             }
         }
+        */
     }
 
 
@@ -200,15 +215,13 @@ public class Play : MonoBehaviour
 
     void Update()
     {
+
+
         float TIME = GetCurrentTime();//现在的时间
-        if (PauseMenu.GameIsPaused)
+        
+        if (!PauseMenu.GameIsPaused)
         {
-            prevFrameTime = TIME;
-        }
-        else
-        {
-            gameTime += TIME - prevFrameTime;
-            prevFrameTime = TIME;
+            gameTime += Time.deltaTime;
         }
         key_harddrop = Input.GetKeyDown("space");//硬降
         key_hold = Input.GetKeyDown("w");//hold
@@ -276,7 +289,8 @@ public class Play : MonoBehaviour
         float TIME = GetCurrentTime();//现在的时间
 
         locked = false;
-        
+
+        bool activeMinoMoved = false;
 
         key_left = Input.GetKey("a");//左右
         key_right = Input.GetKey("d");
@@ -322,14 +336,15 @@ public class Play : MonoBehaviour
                 {
                     UpdateHoldDisplay();
                     UpdateNextDisplay();
-                    UpdateActiveMinoDisplay();
+                    activeMinoMoved = true;
                 }
                 key_hold = false;
             }
             if (key_ccw)
             {
                 if (game.CCWRotate() == 0) {
-                    UpdateActiveMinoDisplay();//逆时针旋转
+
+                    activeMinoMoved = true;//逆时针旋转
                     ResetLockTimer();
                 }
                 key_ccw = false;
@@ -339,7 +354,7 @@ public class Play : MonoBehaviour
 
                 if (game.CWRotate() == 0)
                 {
-                    UpdateActiveMinoDisplay();
+                    activeMinoMoved = true;
                     ResetLockTimer();
                 }
                 //顺时针旋转
@@ -363,7 +378,7 @@ public class Play : MonoBehaviour
                 game.NextMino();
                 UpdateNextDisplay();
                 UpdateFieldDisplay();
-                UpdateActiveMinoDisplay();
+                activeMinoMoved = true;
                 key_harddrop = false;
                 ResetLockTimer();
                 locked = true;
@@ -387,7 +402,7 @@ public class Play : MonoBehaviour
                         if (game.Move(input) == 0)
                         {
                             dasTimer = TIME;
-                            UpdateActiveMinoDisplay();
+                            activeMinoMoved = true;
 
                             ResetLockTimer();
                         }
@@ -398,7 +413,7 @@ public class Play : MonoBehaviour
                         arrTrigger = true;
                         if (game.Move(input) == 0)
                         {
-                            UpdateActiveMinoDisplay();
+                            activeMinoMoved = true;
                             ResetLockTimer();
                         }
                     }
@@ -414,7 +429,7 @@ public class Play : MonoBehaviour
                                 ResetLockTimer();
                             }
                         }
-                        UpdateActiveMinoDisplay();
+                        activeMinoMoved = true;
                     }
                     else
                     {
@@ -426,7 +441,7 @@ public class Play : MonoBehaviour
                             {
                                 
                                 ResetLockTimer();
-                                UpdateActiveMinoDisplay();
+                                activeMinoMoved = true;
                             }
                             arrTimer = TIME;
                         }
@@ -448,7 +463,7 @@ public class Play : MonoBehaviour
 
                 if (game.Fall() == 0)//如果成功下落1格
                 {
-                    UpdateActiveMinoDisplay();
+                    activeMinoMoved = true;
                     ResetLockTimer();
                 }
                 else
@@ -474,13 +489,14 @@ public class Play : MonoBehaviour
                         //涨垃圾行
                         game.NextMino();
                         UpdateFieldDisplay();
-                        UpdateActiveMinoDisplay();
+                        activeMinoMoved = true;
                         UpdateNextDisplay();
                     }
                     ResetLockTimer();
 
                 }
             }
+            
 
         }
 
@@ -497,5 +513,6 @@ public class Play : MonoBehaviour
 
             key_debug = false;
         }
+        if (activeMinoMoved) UpdateActiveMinoDisplay();
     }
 }
