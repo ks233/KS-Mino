@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 1316333533314152313}
   - component: {fileID: 345896833947644393}
   m_Layer: 5
-  m_Name: 2
+  m_Name: mino_img_2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -65,7 +65,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -8615576625225913973, guid: 14db0007d47556145ae86532f21942ba, type: 3}
+  m_Sprite: {fileID: 8071940013332809211, guid: d024e2ee1da7c5443b8c108be219d2bc, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1

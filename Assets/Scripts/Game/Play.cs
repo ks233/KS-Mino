@@ -37,16 +37,17 @@ public class Play : MonoBehaviour
     private bool turnback = false;
 
 
-    public GameObject ParentField;
+    //public GameObject ParentField;
     public GameObject[] MinoTiles;
     public GameObject[] Minoes;
 
-    public GameObject HoldArea;
-    public GameObject NextArea;
-    public GameObject ActiveMinoParent;
 
     public FieldUIDisplay fieldUI;
     public ActiveMinoUIDisplay activeMinoUI;
+    public HoldUIDisplay holdUI;
+    public NextUIDisplay nextUI;
+    public AttackBar attackBar;
+    public GameClearBoard gameClearBoard;
 
     private int lastInput;
     private bool arrTrigger = false;
@@ -84,34 +85,15 @@ public class Play : MonoBehaviour
         int piece = game.statPiece;
         int atk = game.statAttack;
 
-        String s;// = String.Format("时间：{0:0.00}\n块数：{1}\n消行：{2}\n攻击：{3}\n", gameTime, piece, game.statLine, atk);
-        //s += String.Format("PPS：{0:0.00}\nAPM：{1:0.00}\n", piece / gameTime, atk / gameTime * 60);
-        s = String.Format("Pieces\n<size=32>{0} </size>{1:0.00}/SEC\n\nAttacks\n<size=32>{2} </size>{3:0.00}/Min\n\nTime\n<size=32>{4:0.00}</size>",
-            piece, piece / gameTime,atk,atk/gameTime*60,gameTime);
+        String s = String.Format("Pieces\n<size=32>{0} </size>{1:0.00}/SEC\n\nAttacks\n<size=32>{2} </size>{3:0.00}/Min\n\nTime\n<size=32>{4:0.00}</size>",
+            piece, piece / gameTime, atk, atk / gameTime * 60, gameTime);
         TxtStats.text = s;
     }
 
     private void UpdateActiveMinoDisplay()
     {
-        activeMinoUI.UpdateActiveMino(game.field,game.activeMino);
-        /*
+        activeMinoUI.UpdateActiveMino(game.field, game.activeMino);
 
-        DestroyAllChild(ActiveMinoParent);
-        Mino tmpMino = game.GetActiveMino();
-
-        //方块
-        List<Vector2Int> l = Field.GetAllCoordinates(game.activeMino);
-        int ghostDist = tmpMino.GetPosition().y - game.GetGhostY();
-        foreach (Vector2Int v in l)
-        {
-            DisplayUtils.InstChild(MinoTiles[tmpMino.GetIdInt() - 1], new Vector3(v.x, v.y, 0), ActiveMinoParent);
-            if (game.Gaming())
-            {
-
-                DisplayUtils.InstChild(MinoTiles[tmpMino.GetIdInt() - 1], new Vector3(v.x, v.y - ghostDist, 0), ActiveMinoParent, 1, 0.5f);
-            }
-        }
-        */
     }
 
 
@@ -125,64 +107,19 @@ public class Play : MonoBehaviour
 
     private void UpdateHoldDisplay()
     {
-        int holdid = game.GetHoldId();
-        DestroyAllChild(HoldArea);
-        if (holdid != 0)
-        {
-            DisplayUtils.InstChild(Minoes[holdid - 1], Vector3Int.zero, HoldArea);
-        }
+        int holdId = game.GetHoldId();
+        holdUI.UpdateHold(holdId);
     }
 
     private void UpdateNextDisplay()
     {
-        DestroyAllChild(NextArea);
         int[] nextSeq = game.GetNextSeq();
-        for (int i = 0; i < MAX_NEXT; i++)
-        {
-            int id = nextSeq[i];
-            Vector3 offset = Vector3.zero;
-            if (id == Mino.NameToId("J"))
-            {
-                offset.x = -0.5f;
-            }
-            else if (id == Mino.NameToId("I"))
-            {
-                offset.x = 0.5f;
-            }
-            else if (id == Mino.NameToId("O"))
-            {
-                offset.y = 0.5f;
-            }
-            DisplayUtils.InstChild(Minoes[nextSeq[i] - 1], new Vector3(0, -2.5f * i, 0) + offset, NextArea, 0.8f);
-        }
+        nextUI.UpdateNext(nextSeq, MAX_NEXT);
     }
 
     public void UpdateFieldDisplay()
     {
-
-        fieldUI.UpdateField(game.field,game.activeMino);
-
-        
-
-        /*
-        DestroyAllChild(ParentField);
-        int[,] field = game.GetFieldArray();
-
-
-
-
-        //InstChild(Minoes[activeMinoId-1], tmp, ParentField,1,0.6f);
-
-        //场地
-        for (int x = 0; x < 10; x++)
-        {
-            for (int y = 0; y < 20; y++)
-            {
-                if (1 <= field[x, y] && field[x, y] <= 7)
-                    DisplayUtils.InstChild(MinoTiles[field[x, y] - 1], new Vector3(x, y, 0), ParentField);
-            }
-        }
-        */
+        fieldUI.UpdateField(game.field, game.activeMino);
     }
 
 
@@ -218,7 +155,7 @@ public class Play : MonoBehaviour
 
 
         float TIME = GetCurrentTime();//现在的时间
-        
+
         if (!PauseMenu.GameIsPaused)
         {
             gameTime += Time.deltaTime;
@@ -236,7 +173,8 @@ public class Play : MonoBehaviour
 
             UpdateStats();
         }
-        else {
+        else
+        {
             if (!gameover)
             {
                 int[,] field = game.GetFieldArray();
@@ -271,7 +209,8 @@ public class Play : MonoBehaviour
         {
             return game.LockMino(out ct);
         }
-        else {
+        else
+        {
             ct = new ClearType();
             return 0;
         }
@@ -342,7 +281,8 @@ public class Play : MonoBehaviour
             }
             if (key_ccw)
             {
-                if (game.CCWRotate() == 0) {
+                if (game.CCWRotate() == 0)
+                {
 
                     activeMinoMoved = true;//逆时针旋转
                     ResetLockTimer();
@@ -367,9 +307,12 @@ public class Play : MonoBehaviour
                 ClearType ct;
                 int hdCells;
                 game.Drop(out hdCells);//硬降
-                if(Lock(out ct) > 0)
+                if (Lock(out ct) > 0)
                 {
                     ShowClearMsg(ct.ToString());//显示消行信息
+
+                    attackBar.AddAttack(ct.GetAttack());
+
                     if (ct.GetAttack() >= 4)
                     {
                         //特效
@@ -439,7 +382,7 @@ public class Play : MonoBehaviour
                         {
                             if (game.Move(input) == 0)
                             {
-                                
+
                                 ResetLockTimer();
                                 activeMinoMoved = true;
                             }
@@ -486,6 +429,7 @@ public class Play : MonoBehaviour
                         {
                             ShowClearMsg(ct.ToString());//显示消行信息
                         }
+                        attackBar.AddAttack(ct.GetAttack());
                         //涨垃圾行
                         game.NextMino();
                         UpdateFieldDisplay();
@@ -496,7 +440,7 @@ public class Play : MonoBehaviour
 
                 }
             }
-            
+
 
         }
 
