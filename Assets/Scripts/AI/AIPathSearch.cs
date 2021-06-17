@@ -91,7 +91,7 @@ public class Search
 
     public static List<SearchNode> GetLandPoints(Field field, Mino mino)
     {
-        
+        return GetLandPointsKick(field, mino);
         if (field.CountHole(out _) == 0)
         {
             return GetLandPointsLite(field,mino);
@@ -249,7 +249,7 @@ public class SearchNode
     public void Eval(Field field)
     {
         //Debug.Log(clearType.lines);
-        score = field.GetScore(mino) + (clearType.lines == 4 ? 20000:0);
+        score = field.GetScore(mino) + (clearType.lines == 4 ? 1500:0);
 
     }
 

@@ -63,6 +63,21 @@ public class Field
         return field;
     }
 
+    public int MinCol(out int minTop)//高度最低的列
+    {
+
+        int minCol = 9;
+        minTop = top[9];
+        for (int x = 9; x >= 0; x--)
+        {
+            if (top[x] < minTop)
+            {
+                minCol = x;
+                minTop = top[x];
+            }
+        }
+        return minCol;
+    }
     public int CanClearFour()
     {
         UpdateTop();
@@ -116,8 +131,10 @@ public class Field
         int maxDepth = MaxDepth();              //没卵用3号
         int aggHeight = 0;                      //总高度
         int sz = SZ();                          //能否横放SZ
-        int deepWellCol = DeepWell(out int wellDepth);              //大于等于3格的深坑的数量
+        int wellCol = Well(out int wellDepth);              //大于等于2格的深坑的数量
+        int deepWellCol = DeepWell(out _);              //大于等于3格的深坑的数量
         int canClearFour = CanClearFour();
+        int minCol = MinCol(out int minTop);
         foreach (int i in top)
         {
             aggHeight += i;
@@ -159,19 +176,36 @@ public class Field
         */
         //7Bag
 
-        score = (-500 * holes//101
-                - 120 * bump//145
-                - (secondMaxBump > 3 ? 800 : 0)
-                - 80 * (maxTop - secondMinTop)//100
+        score = ((-101 * holes//101
+                - 145 * bump//145
+                - 1600 * holeLine//800
+                - (secondMaxBump > 3 ? 400 : 0)
+                - 80 * (maxTop - secondMinTop)
+                )*3//100
                                               //- (maxTop >= 17 ? 100000 : 0)
                                               //- 27 * aggHeight//27
-                - 800 * holeLine//800
-                - 10 * contSurface//0
-                - 10 * blockAboveHole//8
-                + 120 * sz//120
-                - (deepWellCol > 1 ? 160 : 0) * wellDepth//160
 
-                + canClearFour * 4000
+                - 15 * contSurface//0
+                - 15 * blockAboveHole//8
+                - aggHeight * 40
+                + 400 * sz//120
+                - (deepWellCol > 1 ? 180 : 0) * wellDepth//160
+                - (wellCol > 1 ? 160 : 0) * wellCol//160
+                //+ (count<60?50:0)*count
+                + canClearFour * 500
+                + (minCol==9 ? 300:-200)
+                //- (minCol == 2 || minCol == 7 ? 150 : 0)
+                - (minCol == 1 || minCol == 8 || minCol == 0 ? 150 : 0)
+                + (((top[0] - secondMinTop+1) * 80)
+                + ((top[1] - secondMinTop+1) * 45)
+                + ((top[2] - secondMinTop+1) * 30)
+                + ((top[3] - secondMinTop+1) * 30)
+                + ((top[4] - secondMinTop+1) * 30)
+                + ((top[5] - secondMinTop+1) * 30)
+                + ((top[6] - secondMinTop+1) * 45)
+                + ((top[7] - secondMinTop+1) * 45)
+                + ((top[8] - secondMinTop+1) * 80)
+                + ((top[9]) * -50))*2
                 );
      
 
@@ -243,6 +277,36 @@ public class Field
         if (z > 0) result++;
         if (s > 0) result++;
         return result;
+    }
+
+    public int Well(out int wellDepth)//深度大于等于3，只能用I填的坑
+    {
+        int well = 0;
+        wellDepth = 0;
+        if (top[1] - top[0] >= 2)
+        {
+            wellDepth += top[1] - top[0];
+            well++;
+        }
+
+
+        for (int i = 0; i < 10 - 2; i++)
+        {
+            if (top[i + 1] < top[i + 2] && top[i + 1] < top[i])
+            {
+                if (Math.Min(top[i + 2] - top[i + 1], top[i] - top[i + 1]) >= 2)
+                {
+                    wellDepth += Math.Min(top[i + 2] - top[i + 1], top[i] - top[i + 1]);
+                    well++;
+                }
+            }
+        }
+        if (top[8] - top[9] >= 2)
+        {
+            wellDepth += top[8] - top[9];
+            well++;
+        }
+        return well;
     }
 
     public int DeepWell(out int wellDepth)//深度大于等于3，只能用I填的坑

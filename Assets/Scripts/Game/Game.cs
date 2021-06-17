@@ -18,6 +18,8 @@ public class Game
     public static Vector2Int[,] OFFSET_3x3;//SZLJT的踢墙表
     public static Vector2Int[,] OFFSET_I;//I的踢墙表
 
+    public enum State { Playing, GameOver, GameClear };
+    public State gameState;
 
     //数据
     public int statLine =0;
@@ -35,7 +37,6 @@ public class Game
     public ClearType clearType = new ClearType();
     private bool wasB2B = false;
     private int combo = -1;
-    public bool gameover = false;
     private int hold = 0;
     private bool isHeld;
     private ScoreBoard scoreBoard;
@@ -124,7 +125,7 @@ public class Game
         statLine = 0;
         statPiece = 0;
         statScore = 0;
-        gameover = false;
+        gameState = State.Playing;
 
         //初始化40行10列的盘面
         field.ClearAll();
@@ -160,7 +161,12 @@ public class Game
 
     void GameOver()
     {
-        gameover = true;
+        gameState = State.GameOver;
+    }
+
+    public void GameClear()
+    {
+        gameState = State.GameClear;
     }
 
     public int GetActiveMinoId()
@@ -192,9 +198,9 @@ public class Game
 
     }
 
-    public bool Gaming()
+    public bool Playing()
     {
-        return !gameover;
+        return (gameState==State.Playing);
     }
     private Vector2Int WallKickOffset(Mino mino, int A, int B, Vector2Int coordinate)//A和B都是rotationId
     {
@@ -341,6 +347,7 @@ public class Game
             }
         }
         clearType = new ClearType(minoId, lines, tSpin, tSpinType, pc, combo, wasB2B);
+        
         return clearType;
 
     }

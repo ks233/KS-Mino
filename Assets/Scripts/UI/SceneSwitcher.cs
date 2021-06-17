@@ -15,8 +15,8 @@ public class SceneSwitcher : MonoBehaviour
     }
     public void SwitchScene()
     {
-        SceneManager sceneManager = new SceneManager();
         UnityEngine.SceneManagement.SceneManager.LoadScene(sceneName);
+        Time.timeScale = 1;
     }
 
 }

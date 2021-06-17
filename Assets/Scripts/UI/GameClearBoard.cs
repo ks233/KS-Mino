@@ -22,7 +22,5 @@ public class GameClearBoard : MonoBehaviour
 
     void Start()
     {
-        SetText("10 PCs");
-        SetGameOverText();
     }
 }

@@ -69,7 +69,7 @@ public class AITest : MonoBehaviour
         foreach (Vector2Int v in l)
         {
             DisplayUtils.InstChild(MinoTiles[tmpMino.GetIdInt() - 1], new Vector3(v.x, v.y, 0), ActiveMinoParent);
-            if (game.Gaming())
+            if (game.Playing())
             {
 
                 DisplayUtils.InstChild(MinoTiles[tmpMino.GetIdInt() - 1], new Vector3(v.x, v.y - ghostDist, 0), ActiveMinoParent, 1, 0.5f);
@@ -291,8 +291,10 @@ public class AITest : MonoBehaviour
             buffer.Add(beamTree[path[0]].mino);
             buffer.Add(beamTree[path[0]].child[path[1]].mino);
         }
-        PutMino(buffer[0]);
-        buffer.RemoveAt(0);
+        //PutMino(buffer[0]);
+        //buffer.RemoveAt(0);
+        PutMino(Search.GetLandPoints(game.field.Clone(), game.activeMino)[0].mino);
+
 
         UpdateFieldDisplay();
         UpdateNextDisplay();
@@ -375,7 +377,7 @@ public class AITest : MonoBehaviour
     void FixedUpdate()
     {
         float time = GetCurrentTime();
-        if (!pause && !game.gameover)
+        if (!pause && !game.Playing())
         {
             if (time - aiTimer > 0.3f)
             {

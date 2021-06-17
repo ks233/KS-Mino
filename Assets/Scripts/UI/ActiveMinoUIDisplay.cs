@@ -41,7 +41,7 @@ public class ActiveMinoUIDisplay : MonoBehaviour
         t.GetComponent<RectTransform>().anchoredPosition = new Vector2Int(x, y) * cellSize;
         t.GetComponent<RectTransform>().sizeDelta = new Vector2Int(cellSize, cellSize);
         Color tmpColor = t.GetComponent<Image>().color;
-        tmpColor.a = 0.7f;
+        tmpColor.a = 0.5f;
         t.GetComponent<Image>().color = tmpColor;
         return t;
     }

@@ -60,7 +60,7 @@ public class Mino
     {
         id = IntToMinoID(_id);
         rotation = 0;
-        position = new Vector2Int(0, 0);
+        position = new Vector2Int(4,19);
         SetArray(id, 0);
     }
 
