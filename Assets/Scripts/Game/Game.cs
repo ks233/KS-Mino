@@ -35,8 +35,8 @@ public class Game
 
 
     public ClearType clearType = new ClearType();
-    private bool wasB2B = false;
-    private int combo = -1;
+    public bool wasB2B = false;
+    public int combo = 0;
     private int hold = 0;
     private bool isHeld;
     private ScoreBoard scoreBoard;
@@ -117,7 +117,10 @@ public class Game
 
     }
 
-
+    public void SetHoldID(int holdId)
+    {
+        hold = holdId;
+    }
 
     public void Restart()
     {
@@ -413,10 +416,8 @@ public class Game
     public int LockMino(out ClearType ct)
     {
         int line = 0;
-
         if (!field.IsValid(activeMino)) GameOver();
-
-        field.LockMino(activeMino);
+        field.LockMino(activeMino);//将当前块并入地形
         if (field.LinesCanClear(activeMino) > 0)
         {
             combo += 1;
@@ -426,12 +427,11 @@ public class Game
         }
         else
         {
-            combo = -1;
+            combo = 0;
         }
         isHeld = false;
         statPiece++;
-        //bool isWallKick = IsWallKick(operation);
-        
+        //bool isWallKick = IsWallKick(operation);        
         AfterLock();
         ct = clearType;
         operation = "";
@@ -614,7 +614,6 @@ public class Game
 
     public int Fall()
     {
-
         Vector2Int newPosition = activeMino.GetPosition();
         newPosition.y -= 1;
         if (field.IsValid(activeMino, activeMino.GetRotationId(), newPosition))

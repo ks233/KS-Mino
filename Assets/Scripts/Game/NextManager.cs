@@ -60,6 +60,7 @@ public class NextManager
             nextQueue = new Queue<int>();
             UpdateNext();
             UpdateNext();
+            UpdateNext();
         }
         else
         {
@@ -73,7 +74,7 @@ public class NextManager
 
         //return Random.Range(1, 8);
 
-        if (nextQueue.Count <= 7 && !useCustomNext) UpdateNext();
+        if (nextQueue.Count <= 14 && !useCustomNext) UpdateNext();
         if (nextQueue.Count == 0) return 0;
         return nextQueue.Dequeue();
     }

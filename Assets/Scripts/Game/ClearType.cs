@@ -14,11 +14,11 @@ public class ClearType
     public int combo;
 
 
-    private int[] comboList = { 0, 0, 1, 1, 1, 2, 2, 3, 3, 4, 4, 4, 5 };
+    public static int[] comboList = { 0, 0, 1, 1, 1, 2, 2, 3, 3, 4, 4, 4, 5 };
     private const int COMBO_LIST_LEN = 12;
     private int[] clearList = { 0, 0, 1, 2, 4 };
 
-    private int[] tspinList = { 0, 2, 4, 6 };//mini single double triple
+    private static int[] tspinList = { 0, 2, 4, 6 };//mini single double triple
 
 
     public ClearType(int minoId,int clearLines, bool isTSpin, int tType,  bool isPc,int clearCombo, bool isB2b)

@@ -38,10 +38,14 @@ public class Play : MonoBehaviour
 
     public RectTransform goalLine;
 
-    public int gameMode=1;
+    public int gameMode=0;
 
     public AIHintDisplay aIHintDisplay;
     public bool aiOn=false;
+
+    public float aiTimer = 0;
+
+    private int cellSize = 44;
 
     /*
      * 1=40L
@@ -73,11 +77,11 @@ public class Play : MonoBehaviour
         }
         else if(height<=20)
         {
-            goalLine.anchoredPosition = new Vector2Int(0, height * 44 + 2);
+            goalLine.anchoredPosition = new Vector2Int(0, height * cellSize + 2);
         }
         else
         {
-            goalLine.anchoredPosition = new Vector2Int(0, 20 * 44 + 2);
+            goalLine.anchoredPosition = new Vector2Int(0, 20 * cellSize + 2);
         }
     }
     
@@ -97,6 +101,7 @@ public class Play : MonoBehaviour
     }
     public int OP_Fall()
     {
+
         return game.Fall();
     }
     public void OP_HardDrop()
@@ -117,8 +122,9 @@ public class Play : MonoBehaviour
         }
         game.NextMino();
         UpdateNextDisplay();
+        UpdateActiveMinoDisplay();
         UpdateFieldDisplay();
-
+        UpdateStats();
         AfterLock(ct);
     }
     public void OP_Lock()
@@ -141,7 +147,6 @@ public class Play : MonoBehaviour
     public void AfterLock(ClearType ct)
     {
         UpdateGoalText();
-
         if (gameMode == 1)//40L
         {
             if (game.statLine >= 40)
@@ -150,7 +155,6 @@ public class Play : MonoBehaviour
                 GameClear(gameTime.ToString("0.00"),false);
             }
         }
-
         UpdateAIHint();
     }
 
@@ -158,6 +162,7 @@ public class Play : MonoBehaviour
     {
         if (aiOn)
         {
+            /*
             SearchNode result = Search.GetLandPointsKick(game.field, game.activeMino)[0];
             SearchNode hold;
             if (game.GetHoldId() != 0)
@@ -178,6 +183,13 @@ public class Play : MonoBehaviour
             {
                 aIHintDisplay.UpdateMino(result.mino);
             }
+            */
+
+
+            aIHintDisplay.UpdateMino(zzztoj.GetMino(game.field, game.GetActiveMinoId(), game.GetNextSeq(), game.GetHoldId(),
+                (game.wasB2B ? 1 : 0), game.combo, true, 0, 8));
+
+
         }
         else
         {
@@ -322,9 +334,84 @@ public class Play : MonoBehaviour
             aiOn = !aiOn;
             UpdateAIHint();
         }
+        
+        aiTimer += Time.deltaTime;
+        if (aiTimer > 0.05f&& game.Playing())
+        {
+            zzztest();
+            aiTimer = 0;
+        }
         //f.SetField(game.field);
     }
 
+
+    private string path="";
+    private int pathindex=0;
+    public void zzztest()
+    {
+        if (pathindex >= path.Length)
+        {
+            path = zzztoj.GetPath(game.field, game.GetActiveMinoId(), game.GetNextSeq(), game.GetHoldId(),
+            (game.wasB2B ? 1 : 0), game.combo, true, 0, 8);
+            pathindex = 0;
+        }
+        switch (path[pathindex++])
+        {
+            case 'l': game.Move(-1); break;
+            case 'r': game.Move(1); break;
+            case 'd': game.Fall(); break;
+            case 'L': while (game.Move(-1) == 0) { } break;
+            case 'R': while (game.Move(1) == 0) { } break;
+            case 'D': while (game.Fall() == 0) { } break;
+            case 'V': OP_HardDrop(); break;
+            case 'v':
+                {
+                    Hold();
+                    break;
+
+                }
+            case 'z': game.CCWRotate(); break;
+            case 'c': game.CWRotate(); break;
+        }
+        UpdateActiveMinoDisplay();
+
+
+        /*
+        path = zzztoj.GetPath(game.field, game.GetActiveMinoId(), game.GetNextSeq(), game.GetHoldId(),
+                (game.wasB2B ? 1 : 0), game.combo, true,0, 8);
+        Debug.Log(path);
+        foreach (char c in path)
+        {
+            switch (c)
+            {
+                case 'l': game.Move(-1); break;
+                case 'r': game.Move(1); break;
+                case 'd': game.Fall(); break;
+                case 'L': while (game.Move(-1) == 0) { } break;
+                case 'R': while (game.Move(1) == 0) { } break;
+                case 'D': while (game.Fall() == 0) { } break;
+                case 'V': OP_HardDrop(); break;
+                case 'v':
+                    {
+                        Hold();
+                        break;
+
+                    }
+                case 'z': game.CCWRotate(); break;
+                case 'c': game.CWRotate(); break;
+            }
+        }
+        */
+    }
+
+    void OnGUI()
+    {
+        if (GUI.Button(new Rect(10, 10, 150, 100), "zzztest"))
+        {
+            
+            zzztest();
+        }
+    }
 
     private int Lock(out ClearType ct)
     {

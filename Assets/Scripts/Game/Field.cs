@@ -15,6 +15,25 @@ public class Field
 
     public int count;
 
+
+    public int[] BinaryArray()
+    {
+        int[] binArr = new int[23];
+
+        for (int j = 0; j < 23; j++)
+        {
+            int tmp = 0;
+            //for (int i = 9; i >= 0; i--)
+            for (int i = 0; i < 10; i++)
+            {
+                if (array[i, j] != 0) {
+
+                    binArr[22-j] |= (1 << i);
+                }
+            }
+        }
+        return binArr.Clone() as int[];
+    }
     public Field Clone()
     {
         Field f = (Field)MemberwiseClone();
@@ -182,9 +201,6 @@ public class Field
                 - (secondMaxBump > 3 ? 400 : 0)
                 - 80 * (maxTop - secondMinTop)
                 )*3//100
-                                              //- (maxTop >= 17 ? 100000 : 0)
-                                              //- 27 * aggHeight//27
-
                 - 15 * contSurface//0
                 - 15 * blockAboveHole//8
                 - aggHeight * 40

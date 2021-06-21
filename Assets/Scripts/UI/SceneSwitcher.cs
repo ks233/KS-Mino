@@ -17,6 +17,7 @@ public class SceneSwitcher : MonoBehaviour
     {
         UnityEngine.SceneManagement.SceneManager.LoadScene(sceneName);
         Time.timeScale = 1;
+        PauseMenu.GameIsPaused = false;
     }
 
 }

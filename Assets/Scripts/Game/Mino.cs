@@ -180,7 +180,7 @@ public class Mino
         }
     }
 
-    public string GetName() {
+    public char GetName() {
         return IdToName(MinoIDToInt(id));
     }
     public int GetIdInt()
@@ -200,18 +200,19 @@ public class Mino
         return GetName() + " " + GetPosition().ToString() + " " + GetRotationId();
     }
 
-    public static string IdToName(int id)
+    public static char IdToName(int id)
     {
-        string name = "";
+        char name = ' ';
         switch (id)
         {
-            case 1: name = "S"; break;
-            case 2: name = "Z"; break;
-            case 3: name = "L"; break;
-            case 4: name = "J"; break;
-            case 5: name = "T"; break;
-            case 6: name = "O"; break;
-            case 7: name = "I"; break;
+            case 0: name = ' '; break;
+            case 1: name = 'S'; break;
+            case 2: name = 'Z'; break;
+            case 3: name = 'L'; break;
+            case 4: name = 'J'; break;
+            case 5: name = 'T'; break;
+            case 6: name = 'O'; break;
+            case 7: name = 'I'; break;
         }
         return name;
     }

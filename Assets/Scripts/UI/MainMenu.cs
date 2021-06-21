@@ -9,7 +9,13 @@ public class MainMenu : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        
+    }
+    void Awake()
+    {
         started = false;
+
+        startAnim.SetBool("started", started);
     }
 
     // Update is called once per frame

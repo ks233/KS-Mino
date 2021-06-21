@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 public class AITest : MonoBehaviour
 {
@@ -214,6 +215,7 @@ public class AITest : MonoBehaviour
 
     void Start()
     {
+
         game = new Game();
         game.field = new Field();
     }
@@ -283,6 +285,7 @@ public class AITest : MonoBehaviour
         showField = !showField;
         */
 
+        /*
         if (buffer.Count == 0)
         {
             List<SearchNode> beamTree = Search.OneNextTest(game.field.Clone(), game.activeMino.GetIdInt(), game.next.nextQueue.Peek());//测试下两块为ST的组合
@@ -294,6 +297,8 @@ public class AITest : MonoBehaviour
         //PutMino(buffer[0]);
         //buffer.RemoveAt(0);
         PutMino(Search.GetLandPoints(game.field.Clone(), game.activeMino)[0].mino);
+
+        */
 
 
         UpdateFieldDisplay();

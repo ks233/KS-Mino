@@ -2112,6 +2112,7 @@ MonoBehaviour:
   gameMode: 1
   aIHintDisplay: {fileID: 1067872192}
   aiOn: 0
+  aiTimer: 0
 --- !u!4 &955880163
 Transform:
   m_ObjectHideFlags: 0
@@ -2146,7 +2147,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 955880161}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 32fa53f4b48246a4fac2ac0c02e88fdc, type: 3}
   m_Name: 
@@ -2351,7 +2352,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 54.902, y: 0}
+  m_AnchoredPosition: {x: 54.9021, y: 0}
   m_SizeDelta: {x: -860.103, y: -28.115}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1183164200
