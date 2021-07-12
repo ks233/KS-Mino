@@ -336,7 +336,7 @@ public class Play : MonoBehaviour
         }
         
         aiTimer += Time.deltaTime;
-        if (aiTimer > 0.05f&& game.Playing())
+        if (aiTimer > 0.1f&& game.Playing())
         {
             zzztest();
             aiTimer = 0;
@@ -352,7 +352,7 @@ public class Play : MonoBehaviour
         if (pathindex >= path.Length)
         {
             path = zzztoj.GetPath(game.field, game.GetActiveMinoId(), game.GetNextSeq(), game.GetHoldId(),
-            (game.wasB2B ? 1 : 0), game.combo, true, 0, 8);
+            (game.wasB2B ? 1 : 0), game.combo, true, 0, 4);
             pathindex = 0;
         }
         switch (path[pathindex++])

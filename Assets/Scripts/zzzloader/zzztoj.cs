@@ -74,7 +74,7 @@ public class zzztoj
 
         //int[] comboTable = { 0, -1 };//连击表，以-1结尾
         int maxDepth = 8;           //【AI最大深度，next数组的长度】
-        int level = 8;              //AI深度
+        int level = depth;              //AI深度
         int player = 0;             //bot id
         IntPtr AIPath = zzzdll.TetrisAI(overfield, field, field_w, field_h, b2b, combo,
             next, hold, curCanHold, active, x, y, spin, canhold, can180spin, upcomeAtt, comboTable, maxDepth, level, player);
