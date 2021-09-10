@@ -534,7 +534,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &410486650
 RectTransform:
   m_ObjectHideFlags: 0
@@ -551,8 +551,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -40.428936, y: -0.00000095367}
-  m_SizeDelta: {x: 161.2479, y: 83.4228}
+  m_AnchoredPosition: {x: -40.428997, y: -0.00000095367}
+  m_SizeDelta: {x: 535.83, y: 207.5848}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &410486651
 MonoBehaviour:
@@ -567,7 +567,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.9843137, g: 1, b: 0.5529412, a: 0.8}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -580,16 +580,14 @@ MonoBehaviour:
     m_FontStyle: 1
     m_BestFit: 1
     m_MinSize: 0
-    m_MaxSize: 16
+    m_MaxSize: 36
     m_Alignment: 4
     m_AlignByGeometry: 0
     m_RichText: 1
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 'Back to back
-
-    T spin Double '
+  m_Text: 
 --- !u!222 &410486652
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -610,8 +608,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cfabb0440166ab443bba8876756fdfa9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_EffectColor: {r: 1, g: 0, b: 0.3199501, a: 1}
-  m_EffectDistance: {x: 2, y: 0}
+  m_EffectColor: {r: 0, g: 0.109664485, b: 0.4339623, a: 0.8}
+  m_EffectDistance: {x: 5, y: 0}
   m_UseGraphicAlpha: 1
 --- !u!1 &440153460
 GameObject:
@@ -2109,10 +2107,7 @@ MonoBehaviour:
   TxtClearMsg: {fileID: 410486651}
   TxtGoal: {fileID: 440153462}
   goalLine: {fileID: 1250993815}
-  gameMode: 12
   aIHintDisplay: {fileID: 1067872192}
-  aiOn: 0
-  aiTimer: 0
 --- !u!4 &955880163
 Transform:
   m_ObjectHideFlags: 0
@@ -2353,7 +2348,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 54.9021, y: 0}
-  m_SizeDelta: {x: -860.103, y: -28.115}
+  m_SizeDelta: {x: -768.944, y: -28.115}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1183164200
 MonoBehaviour:
@@ -2688,6 +2683,7 @@ GameObject:
   - component: {fileID: 1506665993}
   - component: {fileID: 1506665992}
   - component: {fileID: 1506665995}
+  - component: {fileID: 1506665996}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -2779,6 +2775,38 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
+--- !u!114 &1506665996
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1506665991}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_RenderShadows: 1
+  m_RequiresDepthTextureOption: 2
+  m_RequiresOpaqueTextureOption: 2
+  m_CameraType: 0
+  m_Cameras: []
+  m_RendererIndex: -1
+  m_VolumeLayerMask:
+    serializedVersion: 2
+    m_Bits: 1
+  m_VolumeTrigger: {fileID: 0}
+  m_RenderPostProcessing: 0
+  m_Antialiasing: 0
+  m_AntialiasingQuality: 2
+  m_StopNaN: 0
+  m_Dithering: 0
+  m_ClearDepth: 1
+  m_AllowXRRendering: 1
+  m_RequiresDepthTexture: 0
+  m_RequiresColorTexture: 0
+  m_Version: 2
 --- !u!1 &1647093177
 GameObject:
   m_ObjectHideFlags: 0

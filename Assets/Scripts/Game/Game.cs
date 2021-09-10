@@ -36,7 +36,7 @@ public class Game
 
     public ClearType clearType = new ClearType();
     public bool wasB2B = false;
-    public int combo = 0;
+    public int combo = 0;//断ren时combo=0，消行第0 ren时combo=1,所以实际combo数要减1
     private int hold = 0;
     private bool isHeld;
     private ScoreBoard scoreBoard;
@@ -143,7 +143,7 @@ public class Game
     }
 
     public int[] GetNextSeq() {
-        return next.nextQueue.ToArray();
+        return next.nextQueue.ToArray().Clone() as int[];
     }
     public void NewMino(int minoId)
     {

@@ -70,8 +70,8 @@ public class zzztoj
         bool canhold = true;        //允许hold
         bool can180spin = false;    //允许180
         int upcomeAtt = _upcomeAtt;          //【攻击等待条】
-        int[] comboTable = { 0,0, 0, 1, 1, 1, 2, 2, 3, 3, 4, 4, 4, 5, -1 };//连击表，以-1结尾
-
+        int[] comboTable = { 0, 0, 0, 1, 1, 1, 2, 2, 3, 3, 4, 4, 4, 5, -1 };//连击表，以-1结尾
+        //int[] comboTable =   { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1 };//连击表，以-1结尾
         //int[] comboTable = { 0, -1 };//连击表，以-1结尾
         int maxDepth = 8;           //【AI最大深度，next数组的长度】
         int level = depth;              //AI深度
@@ -83,11 +83,14 @@ public class zzztoj
         return result;
     }
 
+
+
     public static Mino GetMino(Field _field, int _minoId, int[] _next, int _hold, int _b2b, int _combo, bool _curCanHold, int _upcomeAtt, int depth)
     {
         Mino mino = new Mino(_minoId);
         mino.position = new Vector2Int(4,19);
         string path = GetPath(_field,_minoId,_next,_hold,_b2b,_combo,_curCanHold,_upcomeAtt,depth);
+
         /*
         *      'l': 左移一格
         *      'r': 右移一格
@@ -103,6 +106,7 @@ public class zzztoj
         game.field = _field.Clone();
         game.activeMino = mino;
         game.SetHoldID(_hold);
+        Debug.Log(_hold);
         
         /*
         int[] arr = _field.BinaryArray();

@@ -14,7 +14,7 @@ public class Field
     private int ghostDist;//阴影距离
 
     public int count;
-
+    public int dig = 0;
 
     public int[] BinaryArray()
     {
@@ -788,6 +788,7 @@ public class Field
     public int Clear(Mino mino)//消行并返回行数
     {
         int lines = 0;
+        dig = 0;
         List<Vector2Int> l = GetAllCoordinates(mino);
         List<int> ys = new List<int>();//方块占据的所有y坐标，比如竖着的长条占了4行
         foreach (Vector2Int v in l)
@@ -802,18 +803,25 @@ public class Field
         {
 
             bool canClear = true;
+            bool isGarbageLine = false;
+
             for (int j = 0; j < 10; j++)
             {
                 if (array[j, y - lines] == 0) canClear = false;
+                if (array[j, y - lines] == 8) isGarbageLine = true;
             }
             if (canClear)
             {
                 ClearLine(y - lines);
                 lines++;
+                if (isGarbageLine) dig++;
             }
         }
         return lines;
     }
+
+
+
     public void LockMino(Mino currentMino)
     {
 
@@ -821,6 +829,72 @@ public class Field
         foreach (Vector2Int pos in l)
         {
             array[pos.x, pos.y] = currentMino.GetIdInt();
+        }
+        dig = 0;
+    }
+
+    public int GarbageLineNum()
+    {
+        int count = -1;
+        bool garbage = true;
+        while (garbage == true)
+        {
+            count++;
+            garbage = false;
+            for (int j = 0; j < 10; j++)
+            {
+                if (array[j, count] == 8) garbage = true;
+            }
+        }
+        return count;
+    }
+
+    public void RaiseGarbage(int col,int lineNum)
+    {
+        for(int i = 39; i - lineNum >= 0; i--)//先把地形整体抬高
+        {
+            for(int j = 0; j < 10; j++)
+            {
+                array[j, i] = array[j,i - lineNum];
+            }
+        }
+
+        for (int i = 0; i < lineNum; i++)//先把地形整体抬高
+        {
+            for (int j = 0; j < 10; j++)
+            {
+                array[j,i] = j == col ? 0 : 8;//再用垃圾块填充col以外的列
+            }
+        }
+
+    }
+
+    public void RaiseCheeseGarbage(int lineNum)
+    {
+
+        int garbageLineNum = GarbageLineNum();
+        
+        if (lineNum <= garbageLineNum) return ;
+
+        int randCol = UnityEngine.Random.Range(0,10);
+        if (garbageLineNum > 0)//如果已经有垃圾，就要防止生成的垃圾和第0行垃圾的空洞同列
+        {
+            for (int j = 0; j < 10; j++)
+            {
+                if (array[j, 0] ==0) 
+                {
+                    randCol = j;//第0行垃圾的空洞
+                    break;
+                }
+            }
+        }
+
+        int nextRandCol= randCol;
+        for(int i = 0; i < lineNum - garbageLineNum; i++)
+        {
+            while(nextRandCol==randCol)nextRandCol= UnityEngine.Random.Range(0, 10);//使垃圾行每行空的列都不一样
+            RaiseGarbage(nextRandCol, 1);
+            randCol = nextRandCol;
         }
     }
 

@@ -14,8 +14,8 @@ public class ClearType
     public int combo;
 
 
-    public static int[] comboList = { 0, 0, 1, 1, 1, 2, 2, 3, 3, 4, 4, 4, 5 };
-    private const int COMBO_LIST_LEN = 12;
+    public static int[] comboList = {0, 0, 0, 1, 1, 1, 2, 2, 3, 3, 4, 4, 4, 5 };
+    private const int COMBO_LIST_LEN = 13;
     private int[] clearList = { 0, 0, 1, 2, 4 };
 
     private static int[] tspinList = { 0, 2, 4, 6 };//mini single double triple
@@ -127,7 +127,7 @@ public class ClearType
     {
         bool isB2b = (lines == 4 || tSpin);
         string msg = "";
-        if (combo > 0) msg += combo + " Ren\n";
+        if (combo > 1) msg += (combo-1) + " Ren\n";
         if (isB2b && wasB2b) msg += "Back To Back\n";
         if (tSpin)
         {
@@ -144,7 +144,7 @@ public class ClearType
         {
             switch (lines)
             {
-                case 1: msg += " Single"; break;
+                //case 1: msg += " Single"; break;
                 case 2: msg += " Double"; break;
                 case 3: msg += " Triple"; break;
                 case 4: msg += " Tetris"; break;

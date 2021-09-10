@@ -38,20 +38,49 @@ public class Play : MonoBehaviour
 
     public RectTransform goalLine;
 
-    public int gameMode=0;
-
     public AIHintDisplay aIHintDisplay;
-    public bool aiOn=false;
 
-    public float aiTimer = 0;
+    //==========================游戏选项=================================
+
+
+    [NonSerialized] public int gameMode=4;
+    [NonSerialized] public bool aiHintOn = false;
+    [NonSerialized] public float aiHintDelay = 0f;
+    [NonSerialized] public bool aiOn=true;
+
+    private bool autoPlay = false;
+
+
+
+    //==========================游戏选项=================================
+
+
+    private float zzzInterval = 0.4f;
+    private bool zzzPutting = false;
+
+
+    private float aiTimer = 0;
+    private float aiHintTimer = 0;
+    private bool IsAIHintUpdated = false;
+
+    private int cheeseDigged = 0;
+
 
     private int cellSize = 44;
 
+    private int cheeseMaxY = 10;
+    private int cheeseMinY = 3;
+    private int cheeseGoal = 100;
+
+
+    
+
+    private bool zzzOn = true;
     /*
      * 1=40L
      * 2=限高10格
      * 3=20TSD
-     *
+     * 4=cheese 100L
      *
      *
      *
@@ -154,49 +183,68 @@ public class Play : MonoBehaviour
                 game.GameClear();
                 GameClear(gameTime.ToString("0.00"),false);
             }
+        }else if(gameMode == 4)//cheese 100L
+        {
+            if (cheeseDigged>= cheeseGoal)
+            {
+                game.GameClear();
+
+                GameClear("# " + game.statPiece.ToString(), false);
+            }
+
+            cheeseDigged += game.field.dig;
+            UpdateGoalText();
+            if (game.combo <= 0)
+            {
+                game.field.RaiseCheeseGarbage(cheeseGoal - cheeseDigged>=cheeseMaxY?cheeseMaxY: cheeseGoal - cheeseDigged);
+                UpdateFieldDisplay();
+            }
+            else
+            {
+                game.field.RaiseCheeseGarbage(cheeseGoal - cheeseDigged >= cheeseMinY ? cheeseMinY : cheeseGoal - cheeseDigged);
+                UpdateFieldDisplay();
+            }
         }
-        UpdateAIHint();
+
+        aiHintTimer = 0f;
+        IsAIHintUpdated = false;
+        ClearAIHint();
+        //UpdateAIHint();
     }
 
     public void UpdateAIHint()
     {
-        if (aiOn)
+        /*
+        SearchNode result = Search.GetLandPointsKick(game.field, game.activeMino)[0];
+        SearchNode hold;
+        if (game.GetHoldId() != 0)
         {
-            /*
-            SearchNode result = Search.GetLandPointsKick(game.field, game.activeMino)[0];
-            SearchNode hold;
-            if (game.GetHoldId() != 0)
-            {
-                hold = Search.GetLandPointsKick(game.field, new Mino(game.GetHoldId()))[0];
-            }
-            else
-            {
-                hold = Search.GetLandPointsKick(game.field, new Mino(game.GetNextSeq()[0]))[0];
-            }
-
-
-            if (result.score < hold.score)
-            {
-                aIHintDisplay.UpdateMino(hold.mino);
-            }
-            else
-            {
-                aIHintDisplay.UpdateMino(result.mino);
-            }
-            */
-
-
-            aIHintDisplay.UpdateMino(zzztoj.GetMino(game.field, game.GetActiveMinoId(), game.GetNextSeq(), game.GetHoldId(),
-                (game.wasB2B ? 1 : 0), game.combo, true, 0, 8));
-
-
+            hold = Search.GetLandPointsKick(game.field, new Mino(game.GetHoldId()))[0];
         }
         else
         {
-            aIHintDisplay.Clear();
+            hold = Search.GetLandPointsKick(game.field, new Mino(game.GetNextSeq()[0]))[0];
         }
+
+
+        if (result.score < hold.score)
+        {
+            aIHintDisplay.UpdateMino(hold.mino);
+        }
+        else
+        {
+            aIHintDisplay.UpdateMino(result.mino);
+        }
+        */
+
+        aIHintDisplay.UpdateMino(zzztoj.GetMino(game.field, game.GetActiveMinoId(), game.GetNextSeq(), game.GetHoldId(),
+                (game.wasB2B ? 1 : 0), game.combo, true, 0, 4));
     }
 
+    public void ClearAIHint()
+    {
+        aIHintDisplay.Clear();
+    }
     public void UpdateGoalLine()
     {
         if (gameMode == 1)//40L
@@ -209,9 +257,22 @@ public class Play : MonoBehaviour
     {
         if (gameMode == 1)//40L
         {
-            TxtGoal.text = String.Format("<size=100>{0}</size>\n<size=40>Lines</size>", Math.Max(40 - game.statLine,0));
-            ShowGoalLine(Math.Max(Math.Min(40 - game.statLine, 20),0));
+            TxtGoal.text = String.Format("<size=100>{0}</size>\n<size=40>Lines</size>", Math.Max(40 - game.statLine, 0));
+            ShowGoalLine(Math.Max(Math.Min(40 - game.statLine, 20), 0));
         }
+        else if (gameMode == 4)//cheese 100L
+        {
+            TxtGoal.text = String.Format("<size=100>{0}</size>\n<size=40>Lines</size>", Math.Max(cheeseGoal - cheeseDigged, 0));
+            if (cheeseGoal - cheeseDigged > cheeseMaxY)
+            {
+                ShowGoalLine(20);
+            }
+            else
+            {
+                ShowGoalLine(Math.Max(Math.Min(cheeseGoal - cheeseDigged, cheeseMaxY), 0));
+            }
+        }
+       
     }
 
     private void GameClear(string s,bool isGameOver)
@@ -286,6 +347,13 @@ public class Play : MonoBehaviour
         game.Restart();
         gameClearBoardOBJ.SetActive(false);
         gameTime = 0;
+
+        if (gameMode == 4)//cheese 100L
+        {
+            cheeseDigged = 0;
+            game.field.RaiseCheeseGarbage(9);
+        }
+
         UpdateGoalLine();
         UpdateGoalText();
         UpdateHoldDisplay();
@@ -293,7 +361,7 @@ public class Play : MonoBehaviour
         UpdateFieldDisplay();
         UpdateActiveMinoDisplay();
 
-        UpdateAIHint();
+        //UpdateAIHint();
 
     }
 
@@ -334,15 +402,52 @@ public class Play : MonoBehaviour
             aiOn = !aiOn;
             UpdateAIHint();
         }
-        
-        aiTimer += Time.deltaTime;
-        if (aiTimer > 0.1f&& game.Playing())
+        /*
+        aiHintTimer += Time.deltaTime;
+        if (aiHintTimer > aiHintDelay && game.Playing() && aiHintOn && !IsAIHintUpdated)
         {
-            zzztest();
-            aiTimer = 0;
+            UpdateAIHint();
+            IsAIHintUpdated = true;
         }
-        //f.SetField(game.field);
-    }
+        */
+
+
+        if (!autoPlay)
+        {
+            
+            if (Input.GetKeyDown("space"))
+            {
+                zzzPutting = true;
+                aiTimer = 0;
+                zzztest();
+            }
+            if (zzzPutting)
+            {
+                aiTimer += Time.deltaTime;
+                if (aiTimer > 0.1f && game.Playing() && zzzOn)
+                {
+                    zzztest();
+                    aiTimer = 0;
+                    if (pathindex >= path.Length)
+                    {
+                        zzzPutting = false;
+                    }
+                }
+            }
+        }
+        else
+        {
+
+            aiTimer += Time.deltaTime;
+            if (aiTimer > (pathindex >= path.Length ? zzzInterval : 0.1f) && game.Playing() && zzzOn)
+            {
+                zzztest();
+                aiTimer = 0;
+            }
+
+        }
+            //f.SetField(game.field);
+        }
 
 
     private string path="";
@@ -352,7 +457,7 @@ public class Play : MonoBehaviour
         if (pathindex >= path.Length)
         {
             path = zzztoj.GetPath(game.field, game.GetActiveMinoId(), game.GetNextSeq(), game.GetHoldId(),
-            (game.wasB2B ? 1 : 0), game.combo, true, 0, 4);
+            (game.wasB2B ? 1 : 0), game.combo, true, 0, 8);
             pathindex = 0;
         }
         switch (path[pathindex++])
@@ -406,11 +511,31 @@ public class Play : MonoBehaviour
 
     void OnGUI()
     {
+        /*
         if (GUI.Button(new Rect(10, 10, 150, 100), "zzztest"))
         {
-            
-            zzztest();
+            zzzOn = !zzzOn;
+            //zzztest();
         }
+        if (GUI.Button(new Rect(200, 10, 150, 100), "debug"))
+        {
+
+            //game.field.RaiseGarbage(4, 4);
+        }
+        //GUI.Label(new Rect(400, 10, 150, 100), game.field.GarbageLineNum().ToString());
+        */
+        GUIStyle myButtonStyle = new GUIStyle(GUI.skin.button);
+        myButtonStyle.fontSize = 36;
+        if (GUI.Button(new Rect(10, 10, 200, 100), "autoplay", myButtonStyle))
+        {
+            autoPlay = !autoPlay;
+        }
+        if (GUI.Button(new Rect(220, 10, 200, 100), "restart", myButtonStyle))
+        {
+            Restart();
+        }
+        zzzInterval = GUI.HorizontalSlider(new Rect(25, 200, 300, 300), zzzInterval, 0.1F, 0.7F);
+
     }
 
     private int Lock(out ClearType ct)
