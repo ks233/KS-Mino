@@ -80,6 +80,7 @@ public class zzztoj
             next, hold, curCanHold, active, x, y, spin, canhold, can180spin, upcomeAtt, comboTable, maxDepth, level, player);
 
         string result = Marshal.PtrToStringAnsi(AIPath);
+        Debug.Log(result);
         return result;
     }
 

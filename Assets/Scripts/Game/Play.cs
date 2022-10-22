@@ -43,10 +43,10 @@ public class Play : MonoBehaviour
     //==========================游戏选项=================================
 
 
-    [NonSerialized] public int gameMode=4;
+    [NonSerialized] public int gameMode = 4;
     [NonSerialized] public bool aiHintOn = false;
     [NonSerialized] public float aiHintDelay = 0f;
-    [NonSerialized] public bool aiOn=true;
+    [NonSerialized] public bool aiOn = true;
 
     private bool autoPlay = false;
 
@@ -73,7 +73,7 @@ public class Play : MonoBehaviour
     private int cheeseGoal = 100;
 
 
-    
+
 
     private bool zzzOn = true;
     /*
@@ -104,7 +104,7 @@ public class Play : MonoBehaviour
         {
             goalLine.anchoredPosition = new Vector2Int(0, 0 + 2);
         }
-        else if(height<=20)
+        else if (height <= 20)
         {
             goalLine.anchoredPosition = new Vector2Int(0, height * cellSize + 2);
         }
@@ -113,7 +113,7 @@ public class Play : MonoBehaviour
             goalLine.anchoredPosition = new Vector2Int(0, 20 * cellSize + 2);
         }
     }
-    
+
     //OP前缀都是给KeyListener调用的
 
     public int OP_CWRotate()
@@ -181,11 +181,12 @@ public class Play : MonoBehaviour
             if (game.statLine >= 40)
             {
                 game.GameClear();
-                GameClear(gameTime.ToString("0.00"),false);
+                GameClear(gameTime.ToString("0.00"), false);
             }
-        }else if(gameMode == 4)//cheese 100L
+        }
+        else if (gameMode == 4)//cheese 100L
         {
-            if (cheeseDigged>= cheeseGoal)
+            if (cheeseDigged >= cheeseGoal)
             {
                 game.GameClear();
 
@@ -196,7 +197,7 @@ public class Play : MonoBehaviour
             UpdateGoalText();
             if (game.combo <= 0)
             {
-                game.field.RaiseCheeseGarbage(cheeseGoal - cheeseDigged>=cheeseMaxY?cheeseMaxY: cheeseGoal - cheeseDigged);
+                game.field.RaiseCheeseGarbage(cheeseGoal - cheeseDigged >= cheeseMaxY ? cheeseMaxY : cheeseGoal - cheeseDigged);
                 UpdateFieldDisplay();
             }
             else
@@ -272,10 +273,10 @@ public class Play : MonoBehaviour
                 ShowGoalLine(Math.Max(Math.Min(cheeseGoal - cheeseDigged, cheeseMaxY), 0));
             }
         }
-       
+
     }
 
-    private void GameClear(string s,bool isGameOver)
+    private void GameClear(string s, bool isGameOver)
     {
         if (keyListener.pause == false)
         {
@@ -387,9 +388,9 @@ public class Play : MonoBehaviour
         {
             UpdateStats();
         }
-        else if(game.gameState == Game.State.GameOver)
+        else if (game.gameState == Game.State.GameOver)
         {
-            GameClear("",true);
+            GameClear("", true);
         }
 
         if (GetCurrentTime() - clearMsgTimer >= 2 && clearMsgTimer != 0)
@@ -414,7 +415,7 @@ public class Play : MonoBehaviour
 
         if (!autoPlay)
         {
-            
+
             if (Input.GetKeyDown("space"))
             {
                 zzzPutting = true;
@@ -440,18 +441,19 @@ public class Play : MonoBehaviour
 
             aiTimer += Time.deltaTime;
             if (aiTimer > (pathindex >= path.Length ? zzzInterval : 0.1f) && game.Playing() && zzzOn)
+            //if (aiTimer > 0.01f && game.Playing() && zzzOn)
             {
                 zzztest();
                 aiTimer = 0;
             }
 
         }
-            //f.SetField(game.field);
-        }
+        //f.SetField(game.field);
+    }
 
 
-    private string path="";
-    private int pathindex=0;
+    private string path = "";
+    private int pathindex = 0;
     public void zzztest()
     {
         if (pathindex >= path.Length)

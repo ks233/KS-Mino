@@ -5,7 +5,8 @@ using System;
 
 public class zzzdll
 {
-    const string zzz = @"zzz64.dll";
+    const string zzz = @"bot.dll";
+
     [DllImport(zzz, CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl)]
     //[return: MarshalAs(UnmanagedType.LPStr)]
     public static extern IntPtr AIName(int Level);
