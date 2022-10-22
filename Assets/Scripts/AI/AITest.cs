@@ -30,7 +30,7 @@ public class AITest : MonoBehaviour
 
     public Game game;//仅用于显示
 
-    private bool showField = false;
+    private bool showField = true;
 
 
     public int drawColor;
@@ -132,25 +132,17 @@ public class AITest : MonoBehaviour
             UpdateFieldDisplay();
     }
 
-    public void PutMino()
+    public void TetrisAI()
     {
-
-        landpoints = Search.GetLandPoints(game.field, Search.SpawnMino(game.GetActiveMinoId()));
-        /*
-        for (int i = 0; i < landpoints.Count; i++)
-        {
-            landpoints[i].score = game.field.GetScore(landpoints[i].mino);
-        }
-        List<SearchNode> SortedList = landpoints.OrderByDescending(o => o.score).ToList();
+        SearchNode node = new SearchNode(game.field, Search.SpawnMino(game.GetActiveMinoId()), "");
+        SearchNode result = Search.Run(node, 3);
        
-        landpoints = SortedList;
-        */
-        if (landpoints.Count == 0) {
+        if (result == null) {
             game.SetActiveMino(new Mino(game.GetActiveMinoId(), 4, 19, 0));
         }
         else
         {
-            game.SetActiveMino(landpoints[0].mino);
+            game.SetActiveMino(result.mino);
         }
         _ = game.LockMino(out _);
         game.NextMino();
@@ -257,6 +249,7 @@ public class AITest : MonoBehaviour
 
     public void LandPointTest()
     {
+        /*
         nodesIndex = 0;
         nodes = Search.GetLandPoints(game.field, new Mino(1, 4, 19, 0));
         foreach (SearchNode sn in nodes)
@@ -264,17 +257,8 @@ public class AITest : MonoBehaviour
             Debug.Log(sn.mino);
         }
         txtNodeIndex.text = String.Format("落点({0}/{1})",nodesIndex+1,nodes.Count);
-    }
-
-
-    private void OneNextTest()
-    {
-        List<SearchNode> beamTree = Search.OneNextTest(game.field.Clone(), game.activeMino.GetIdInt(), game.next.nextQueue.Peek());//测试下两块为ST的组合
-        List<int> path = Search.MaxScorePath(beamTree);
-        DestroyAllChild(MinoParent);
-        PutMino(beamTree[path[0]].mino);
-        //buffer.Add(beamTree[path[0]].mino);
-        //buffer.Add(beamTree[path[0]].child[path[1]].mino);
+        */
+        return;
     }
 
     public void DoSomething()//临时debug按钮对应的函数，功能不确定
@@ -299,6 +283,7 @@ public class AITest : MonoBehaviour
         PutMino(Search.GetLandPoints(game.field.Clone(), game.activeMino)[0].mino);
 
         */
+        TetrisAI();
 
 
         UpdateFieldDisplay();
