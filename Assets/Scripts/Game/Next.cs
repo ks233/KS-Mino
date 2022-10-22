@@ -1,24 +1,59 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class NextManager
+public class Next
 {
-
     public Queue<int> nextQueue = new Queue<int>();     //NEXT序列
-    public bool useCustomNext = true;                   //是否自定义NEXT
-    public string nextSeq = "";                         //NEXT序列字符串
-    int[] bag = new int[] { 1, 2, 3, 4, 5, 6, 7 };      //7bag机制
+    private static int[] bag = new int[] { 1, 2, 3, 4, 5, 6, 7 };      //7bag机制
 
-    public NextManager(bool _useCustomNext)
+
+    public bool useCustomNext = true;                   //是否自定义NEXT
+    public string nextSeq = "";                         //自定义NEXT序列字符串
+
+
+
+    public Next(bool _useCustomNext)
     {
         useCustomNext = _useCustomNext;
         ResetNext();
     }
+    public void InsertFront(int minoId)
+    {
+        Queue<int> q = new Queue<int>();
+        q.Enqueue(minoId);
+        for (int i = 0; i < nextQueue.Count; i++)
+        {
+            q.Enqueue(nextQueue.Dequeue());
+        }
+        nextQueue = q;
+    }
+    public Next Clone()
+    {
 
-
-    public void ApplyNextSeq()
+        Next clone = (Next)this.MemberwiseClone();
+        clone.nextQueue = new Queue<int>(nextQueue);
+        return clone;
+    }
+    public Next CloneAndDequeue()
+    {
+        Next next = Clone();
+        next.Dequeue();
+        return next;
+    }
+    public override string ToString()
+    {
+        string s = "";
+        foreach(int id in nextQueue)
+        {
+            s += Mino.IdToName(id);
+        }
+        return s;
+    }
+    
+    private void ApplyNextSeq()
     {
         int len = nextSeq.Length;
         Mino m = new Mino();
@@ -38,16 +73,10 @@ public class NextManager
         }
     }
 
-
-
     public void SetNextSeq(string seq)
     {
         nextSeq = seq;
-    }
-
-    public void SetUseCustomNext(bool b)
-    {
-        useCustomNext = b;
+        ApplyNextSeq();
     }
 
     public void ResetNext()
@@ -55,12 +84,9 @@ public class NextManager
         nextQueue.Clear();
         if (!useCustomNext)
         {
-            bag = new int[] { 1, 2, 3, 4, 5, 6, 7 };
-            Shuffle(bag);
             nextQueue = new Queue<int>();
-            UpdateNext();
-            UpdateNext();
-            UpdateNext();
+            New7Bag();
+            New7Bag();
         }
         else
         {
@@ -68,25 +94,24 @@ public class NextManager
         }
     }
 
+    public int NextMino()
+    {
+        if (nextQueue.Count <= 14 && !useCustomNext) New7Bag();
+        return Dequeue();
+    }
 
     public int Dequeue()
     {
-
-        //return Random.Range(1, 8);
-
-        if (nextQueue.Count <= 14 && !useCustomNext) UpdateNext();
         if (nextQueue.Count == 0) return 0;
         return nextQueue.Dequeue();
     }
 
 
-    public void UpdateNext()
+    public void New7Bag()
     {
-
         Shuffle(bag);
         for (int i = 0; i < 7; i++)
             nextQueue.Enqueue(bag[i]);
-
     }
     public static void Shuffle(int[] deck)//打乱包中的块序
     {

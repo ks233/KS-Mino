@@ -134,7 +134,9 @@ public class AITest : MonoBehaviour
 
     public void TetrisAI()
     {
-        SearchNode node = new SearchNode(game.field, Search.SpawnMino(game.GetActiveMinoId()), "");
+        Next next = game.next.Clone();
+        //next.InsertFront(game.GetActiveMinoId());
+        SearchNode node = new SearchNode(game.field, Search.SpawnMino(game.GetActiveMinoId()), "",next);
         SearchNode result = Search.Run(node, 3);
        
         if (result == null) {
@@ -142,7 +144,7 @@ public class AITest : MonoBehaviour
         }
         else
         {
-            game.SetActiveMino(result.mino);
+            game.SetActiveMino(result.minoResult);
         }
         _ = game.LockMino(out _);
         game.NextMino();
@@ -285,7 +287,7 @@ public class AITest : MonoBehaviour
         */
         TetrisAI();
 
-
+        Debug.Log("Tetris AI");
         UpdateFieldDisplay();
         UpdateNextDisplay();
     }

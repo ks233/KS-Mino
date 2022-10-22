@@ -27,7 +27,7 @@ public class Game
     public int statPiece =0;
     public int statScore =0;
 
-    public NextManager next;
+    public Next next;
 
     //public int[,] field = new int[10, 40];//10*20的盘面，预留20行，避免c4w玩家被顶到溢出（
     public Field field = new Field();
@@ -137,8 +137,8 @@ public class Game
         wasB2B = false;
         combo = 0;
 
-        next = new NextManager(false);
-        NewMino(next.Dequeue());
+        next = new Next(false);
+        NewMino(next.NextMino());
 
     }
 
@@ -151,7 +151,7 @@ public class Game
         {
             activeMino = new Mino(minoId)
             {
-                position = new Vector2Int(4, 20)
+                position = new Vector2Int(4, 19)
             };
             if (!field.IsValid(activeMino, activeMino.GetPosition())) GameOver();
 
@@ -642,7 +642,7 @@ public class Game
     }
     public void NextMino()
     {
-        NewMino(next.Dequeue());
+        NewMino(next.NextMino());
     }
 
     public int GetHoldId()
@@ -659,7 +659,7 @@ public class Game
             if (hold == 0)
             {
                 int t = activeMino.GetIdInt();
-                NewMino(next.Dequeue());
+                NewMino(next.NextMino());
                 hold = t;
             }
             else
